@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+-->
+
+<html>
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<head>
+    <title>Getting Started Extension's Popup</title>
+    <style>
+      body {
+        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+        font-size: 100%;
+    }
+    #status {
+        /* avoid an excessively wide status text */
+        white-space: pre;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 400px;
+    }
+    .border {
+      border: 1px solid;
+      padding: 2px;
+      display: inline-block;
+      margin-left: auto;
+      margin-right: auto;
+  }
+
+  .container {
+      width: 250px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+  }
+
+  .container2 {
+    display: inline-block;
+    *display: inline; /* For IE7 */
+    zoom: 1; /* Trigger hasLayout */
+    width: 33%;
+    text-align: center;
+  }
+
+     table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 5px;
+        text-align: left;
+    }
+</style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+  -->
+  <script src="scripts/popup.js"></script>
+</head>
+    <body>
+        <div id='debugging'></div>
+        <div class='border container'>StopLeak Warning</div><br><br>
+        <div class='border container'><div>Your <u>something</u> is leaking<br>towards some_site</div></div><br><br>
+
+
+        Details<br>
+        <div class='border container'>
+            <table style="width:100%">
+                <tr>
+                    <td width="50%">Alexa Rank:</td>
+                    <td id='alexa-result'></td>
+                </tr>
+                <tr>
+                    <td>WOT:</td>
+                    <td id='wot-result'></td>
+                </tr>
+                <tr>
+                    <td>Visited before:</td>
+                    <td id='visited-result'>No</td>
+                </tr>
+                <tr>
+                    <td>Community:</td>
+                    <td id='comm-result'>66% of users chose Scrub</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class='container'>
+            <button type="button" onclick=''>Allow</button>&nbsp;&nbsp;
+            <button type="button" onclick=''>Scrub</button>&nbsp;&nbsp;
+            <button type="button" onclick=''>Stop</button>
+        </div>
+
+        <!--div id="status" hidden></div>
+        <img id="image-result" hidden-->
+    </body>
+</html>
+
