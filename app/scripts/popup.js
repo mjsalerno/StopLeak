@@ -7,6 +7,25 @@ var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
 
+function getWOTString(rank) {
+    'use strict';
+    var rtn;
+
+    if (rank >= 80) {
+        rtn = 'Excellent';
+    } else if (rank >= 60) {
+        rtn = 'Good';
+    } else if (rank >= 40) {
+        rtn = 'Unsatisfactory';
+    } else if (rank >= 20) {
+        rtn = 'Poor';
+    } else {
+        rtn = 'Very poor';
+    }
+
+    return rtn;
+}
+
 function getAlexaRank(url) {
     'use strict';
     $.ajax({
@@ -30,11 +49,13 @@ function getWOTRank(url) {
         type: 'GET',
         url: WOT_URL + url + '/&key=' + WOT_KEY,
         dataType: 'json',
-        success: function () {
+        success: function (data) {
             //put data back up in that function later
             //var $xml = $(data);
             $('#debugging').text('Loaded WOT');
-            $('#wot-result').html('SHITTY!!');
+            //$('#wot-result').html('SHITTY!!');
+            var rank = data[url][0][0];
+            $('#wot-result').html(getWOTString(rank));
         },
         error: function () {
             $('#debugging').text('ERROR');
