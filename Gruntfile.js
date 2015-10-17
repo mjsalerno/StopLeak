@@ -316,6 +316,22 @@ module.exports = function (grunt) {
     'clean:dist',
     'chromeManifest:dist',
     'useminPrepare',
+    'imagemin:dist',
+    'svgmin:dist',
+    'cssmin',
+    'concat',
+    'uglify',
+    'copy',
+    'usemin',
+    'compress'
+  ]);
+
+  grunt.registerTask('jenkins', [
+    'jshint',
+    'test',
+    'clean:dist',
+    'chromeManifest:dist',
+    'useminPrepare',
     'concurrent:dist',
     'cssmin',
     'concat',
