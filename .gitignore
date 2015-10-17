@@ -135,6 +135,9 @@ sftp-config.json
 
 ## Plugin-specific files:
 
+# PyCharm
+__pycache__
+
 # IntelliJ
 /out/
 

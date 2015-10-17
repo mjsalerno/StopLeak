@@ -6,6 +6,8 @@
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
+var DB_HOST = '127.0.0.1';
+var DB_PORT = '';
 
 function getWOTString(rank) {
     'use strict';
@@ -62,6 +64,18 @@ function getWOTRank(url) {
             $('#wot-result').html('I BROKE!!!!');
         }
     });
+}
+
+function getActionCount(url) {
+    'use strict';
+    //var socket = io('ws://130.245.72.86:8765');
+    //socket.emit('chat message', 'does it work');
+
+    var connection = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT + ':8765');
+    connection.onopen = function(evt) {
+        console.log(evt);connection.send(url);
+    };
+
 }
 
 /**
@@ -158,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
     'use strict';
     getAlexaRank('google.com');
     getWOTRank('google.com');
+  getActionCount('hola!!');
     getCurrentTabUrl(function(url) {
         // Put the image URL in Google search.
         renderStatus('Performing Google Image search for ' + url);
