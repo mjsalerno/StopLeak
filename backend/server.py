@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# *API*
+#{"function" : "record_tally", "args": {"domain": "www.hello.com", "choice" : "nothing" } } 
+
 import asyncio
 import websockets
 import database
@@ -23,6 +27,7 @@ def handle_request(websocket, path):
     # Extract the function name and arguments from the request
     function = request_json['function']
     args = request_json['args']
+
     
     if function == "record_tally":
         print("Request: " + function)
