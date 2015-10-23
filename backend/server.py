@@ -33,7 +33,9 @@ def handle_request(websocket, path):
             'value': option_counts
         }
         yield from websocket.send(json.dumps(result))
+
     elif function == "record_get_scrub_percent":
+
         percent = backend.record_get_scrub_percent()
         result = {
             'type': 'record_get_scrub_percent',
