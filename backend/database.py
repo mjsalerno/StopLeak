@@ -21,14 +21,7 @@ class stopleak_db:
     def record_add_domain(self, domain):
         self.c.execute('INSERT INTO domain_data (domain) VALUES + (?)', (domain,))
         self.conn.commit()
-        
+
     def record_get_row(self, domain):
         self.c.execute('SELECT * FROM domain_data WHERE domain = ?', (domain,))
         row = self.c.fetchone()
-        
-        
-                
-
-
-
-
