@@ -17,6 +17,7 @@ wsConnection.onmessage = function(event) {
     // console.log('Message:'  + message);
     switch(message.type) {
         case 'record_get_scrub_percent':
+            /* TODO: Eventually this will eventualy compute the % of 3 different values */
             $('#comm-result').html(message.value + '% of users chose Scrub');
             break;
         default:
@@ -82,13 +83,20 @@ function getWOTRank(url) {
     });
 }
 
-function getActionCount(request) {
+function getActionCount(payload) {
     'use strict';
     //var socket = io('ws://130.245.72.86:8765');
     //socket.emit('chat message', 'does it work');
     wsConnection.onopen = function() {
         // console.log(evt);
-        wsConnection.send(request);
+        payload = {
+            /* TODO: Change function to the real one when its done */
+            'function': 'record_get_scrub_percent',
+            'args': {
+                'domain': 'www.SHANE_MAKE_ME_WORK.awesome'
+            }
+        };
+        wsConnection.send(JSON.stringify(payload));
     };
 }
 
@@ -186,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
     'use strict';
     getAlexaRank('google.com');
     getWOTRank('google.com');
-    getActionCount('record_get_scrub_percent');
+    getActionCount();
     getCurrentTabUrl(function(url) {
         // Put the image URL in Google search.
         renderStatus('Performing Google Image search for ' + url);
