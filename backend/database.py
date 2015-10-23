@@ -25,3 +25,6 @@ class stopleak_db:
     def record_get_row(self, domain):
         self.c.execute('SELECT * FROM domain_data WHERE domain = ?', (domain,))
         row = self.c.fetchone()
+
+    def record_get_best_option(self):
+        pass
