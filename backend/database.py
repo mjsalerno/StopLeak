@@ -1,3 +1,4 @@
+import sqlite3
 """
 The database schema for our backend:
 
@@ -8,13 +9,13 @@ The database schema for our backend:
 
 """
 
-class stopleak_db:
+class stopleak_db(object):
     def __init__(self, db_name):
         conn = sqlite3.connect(db_name)
         c = conn.cursor()
 
     def record_tally(self, domain, choice):
-        #avoid sql injection with param substitution
+        # avoid sql injection with param substitution
         self.c.execute('UPDATE domain_data SET ? = ? + 1 where domain = "?"', (choice, choice, domain))
         self.conn.commit()
 
@@ -28,3 +29,6 @@ class stopleak_db:
 
     def record_get_best_option(self):
         pass
+
+    def record_get_scrub_percent(self):
+        print("Unimplemented function: 'record_get_scrub_percent'")
