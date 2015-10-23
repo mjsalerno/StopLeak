@@ -1,12 +1,28 @@
 /*global $*/
+var defaultUrl = 'https://mjsalerno.github.io';
 var defaultData = 'scott, shane, michael, mike, paul';
 
-function appendToPage () {
-    $('#results').append('response');
+function showResults(response) {
+    $('#results').html(response);
 }
 
-function leakData (method, data) {
-    var url = 'http://roofis0.net';
+function leakFailed(xhr) {
+    if (xhr.responseText) {
+        showResults(xhr.responseText);
+    }
+    else {
+        showResults("Probably ERR_BLOCKED_BY_CLIENT (meaning StopLeak!)");
+        console.log(xhr);
+    }
+}
+
+function leakData(method) {
+    var url = $('#leaky-url').val();
+    var data = $('#leaky-text').val();
+
+    if (!url) {
+        url = defaultUrl;
+    }
 
     if (!data) {
         data = defaultData;
@@ -21,24 +37,22 @@ function leakData (method, data) {
         data: data
     });
 
-    req.done(appendToPage);
-
-    req.fail(function( jqXHR) {
-        console.log(jqXHR);
-    });
+    req.done(showResults);
+    req.fail(leakFailed);
 }
 
-function leakByGet () {
-    leakData('GET', $('#leaky-text').val());
+function leakByGet() {
+    leakData('GET');
 }
 
-function leakByPost () {
-    leakData('POST', $('#leaky-text').val());
+function leakByPost() {
+    leakData('POST');
 }
 
-function addHandlers () {
+function addHandlers() {
     $('#leaky-get-button').bind('click', leakByGet);
     $('#leaky-post-button').bind('click', leakByPost);
+    $('#leaky-url').text(defaultUrl);
     $('#leaky-text').attr('placeholder', defaultData);
 }
 
