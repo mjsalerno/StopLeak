@@ -30,6 +30,9 @@ class stopleak_db(object):
         self.c = self.conn.cursor()
 
     def record_tally(self, domain, choice):
+        # XX
+        # CHECK IF EXISTS
+
         # avoid sql injection with param substitution
 
         # you cannot substitute table or column names
@@ -41,9 +44,11 @@ class stopleak_db(object):
 
             "nothing": "nothing"
         }
-
-        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ? + 1 where domain = ? ', (choice, domain))
-
+        
+        print("Domain: " + domain)
+        print("Choice: " + choice)
+        
+        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ' + options[choice] + ' + 1 WHERE domain = ? ', (domain,))
         self.conn.commit()
 
     def record_add_domain(self, domain):
@@ -64,6 +69,8 @@ class stopleak_db(object):
         return result
 
     def close(self):
+        # commit just in case
+        self.conn.commit()
         self.conn.close()
 
     def record_get_scrub_percent(self):

@@ -7,8 +7,8 @@ import sqlite3
 import pprint
 from database import stopleak_db
 
-DB_NAME = 'test.db'
-
+#DB_NAME = 'test.db'
+DB_NAME = 'new_db'
 
 def handle_request(websocket, path):
     request = yield from websocket.recv()
@@ -19,12 +19,18 @@ def handle_request(websocket, path):
     print("Incoming request:" + " " + request)
     print("Deserialized request:")
     pp.pprint(request_json)
-    # Extract the function name from the request
-    function = request_json['function']
 
+    # Extract the function name and arguments from the request
+    function = request_json['function']
+    args = request_json['args']
+    
     if function == "record_tally":
-        backend.record_tally()
+        print("Request: " + function)
+        print("Args: ")
+        pp.pprint( args)
+        backend.record_tally(**args)
     elif function == "record_add_domain":
+        print("Request: " + function)
         backend.record_add_domain()
     elif function == "record_get_best_option":
         option_counts = backend.record_get_best_option()
