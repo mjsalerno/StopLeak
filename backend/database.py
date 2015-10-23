@@ -1,6 +1,5 @@
+import random
 import sqlite3
-
-
 """
 The database schema for our backend:
 
@@ -10,6 +9,7 @@ The database schema for our backend:
 -----------------------------------------------
 
 """
+
 
 def create_stopleak_db(file_name):
     conn = sqlite3.connect(file_name)
@@ -24,13 +24,14 @@ def create_stopleak_db(file_name):
     conn.close()
 
 
-class stopleak_db:
+class stopleak_db(object):
     def __init__(self, db_name):
         self.conn = sqlite3.connect(db_name)
         self.c = self.conn.cursor()
 
     def record_tally(self, domain, choice):
         # avoid sql injection with param substitution
+
         # you cannot substitute table or column names
         options = {
 
@@ -42,16 +43,17 @@ class stopleak_db:
         }
         
         self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ? + 1 where domain = ? ', (choice, domain))
+
         self.conn.commit()
 
     def record_add_domain(self, domain):
         self.c.execute('INSERT INTO domain_data (domain) VALUES (?)', (domain,))
         self.conn.commit()
-        
+
     def record_get_row(self, domain):
         self.c.execute('SELECT * FROM domain_data WHERE domain = ?', (domain,))
         row = self.c.fetchone()
-        
+
     def record_get_best_option(self):
         self.c.execute('SELECT scrub, block, nothing  FROM domain_data WHERE domain = ?', (domain,))
         result = self.c.fetchone()
@@ -62,8 +64,9 @@ class stopleak_db:
         
     def close(self):
         self.conn.close()
-                
 
-
-
-
+    def record_get_scrub_percent(self):
+        percentage = int(random.uniform(0.1, 1.0) * 100)
+        print("Unimplemented function: 'record_get_scrub_percent'")
+        print("Returning a random percent: {}".format(percentage))
+        return percentage
