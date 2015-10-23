@@ -117,7 +117,8 @@ module.exports = function (grunt) {
         'Gruntfile.js',
         '<%= config.srcScript %>/{,*/}*.js',
         '!<%= config.app %>/scripts/vendor/*',
-        'test/spec/{,*/}*.js'
+        'test/spec/{,*/}*.js',
+        'test/leakysite/{,*/}*.js'
       ]
     },
     mocha: {
