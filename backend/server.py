@@ -12,27 +12,30 @@ DB_NAME = 'test.db'
 
 def handle_request(websocket, path):
     request = yield from websocket.recv()
+    print(request)
     request_json = json.loads(request)
     pp = pprint.PrettyPrinter()
-
 
     print("Incoming request:" + " " + request)
     print("Deserialized request:")
     pp.pprint(request_json)
+    # Extract the function name from the request
+    function = request_json['function']
 
-    if request['type'] == "record_tally":
+    if function == "record_tally":
         backend.record_tally()
-    elif request['type'] == "record_add_domain":
+    elif function == "record_add_domain":
         backend.record_add_domain()
-    elif request['type'] == "record_get_best_option":
+    elif function == "record_get_best_option":
         option_counts = backend.record_get_best_option()
         result = {
             'type' : 'record_get_best_option',
             'value': option_counts
         }
         yield from websocket.send(json.dumps(result))
-        
-    elif request['type'] == "record_get_scrub_percent":
+
+    elif function == "record_get_scrub_percent":
+
         percent = backend.record_get_scrub_percent()
         result = {
             'type': 'record_get_scrub_percent',
@@ -40,7 +43,7 @@ def handle_request(websocket, path):
         }
         yield from websocket.send(json.dumps(result))
     else:
-        print("Unsupported request: {}".format(request))
+        print("Unsupported request: {}".format(function))
 
 
 if __name__ == "__main__":

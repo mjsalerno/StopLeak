@@ -15,7 +15,7 @@ def create_stopleak_db(file_name):
     conn = sqlite3.connect(file_name)
     c = conn.cursor()
 
-    
+
     c.execute("CREATE TABLE domain_data (domain TEXT PRIMARY KEY, scrub INT DEFAULT 0, \
                block INT DEFAULT 0, nothing INT DEFAULT 0)")
 
@@ -41,7 +41,7 @@ class stopleak_db(object):
 
             "nothing": "nothing"
         }
-        
+
         self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ? + 1 where domain = ? ', (choice, domain))
 
         self.conn.commit()
@@ -62,7 +62,7 @@ class stopleak_db(object):
         result = {"scrub" : result[0], "block" : result[1], "nothing": result[2] }
 
         return result
-        
+
     def close(self):
         self.conn.close()
 
