@@ -47,6 +47,7 @@ class stopleak_db(object):
         self.conn.commit()
 
     def record_add_domain(self, domain):
+        domain = domain.lower()
         self.c.execute('INSERT INTO domain_data (domain) VALUES (?)', (domain,))
         self.conn.commit()
 

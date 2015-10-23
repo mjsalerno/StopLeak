@@ -27,7 +27,12 @@ def handle_request(websocket, path):
     elif function == "record_add_domain":
         backend.record_add_domain()
     elif function == "record_get_best_option":
-        backend.record_get_best_option()
+        option_counts = backend.record_get_best_option()
+        result = {
+            'type' : 'record_get_best_option',
+            'value': option_counts
+        }
+        yield from websocket.send(json.dumps(result))
     elif function == "record_get_scrub_percent":
         percent = backend.record_get_scrub_percent()
         result = {
