@@ -11,7 +11,7 @@ function leakFailed(xhr) {
         showResults(xhr.responseText);
     }
     else {
-        showResults("Probably ERR_BLOCKED_BY_CLIENT (meaning StopLeak!)");
+        showResults('Probably ERR_BLOCKED_BY_CLIENT (meaning StopLeak!)');
         console.log(xhr);
     }
 }
