@@ -18,7 +18,8 @@ def handle_request(websocket, path):
     elif request == "record_get_best_option":
         backend.record_get_best_option()
     elif request == "record_get_scrub_percent":
-        backend.record_get_scrub_percent()
+        result = backend.record_get_scrub_percent()
+        yield from websocket.send(result)
     else:
         print("Unsupported request: {}".format(request))
 
