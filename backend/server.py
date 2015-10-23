@@ -29,9 +29,14 @@ def handle_request(websocket, path):
         print("Unsupported request: {}".format(request))
 
 
-server = websockets.serve(handle_request, 'localhost', 8765)
-# server = websockets.serve(handle_request, '0.0.0.0', 8765)
-backend = stopleak_db(DB_NAME)
-
-asyncio.get_event_loop().run_until_complete(server)
-asyncio.get_event_loop().run_forever()
+if __name__ == "__main__":
+    try:
+        server = websockets.serve(handle_request, 'localhost', 8765)
+        # server = websockets.serve(handle_request, '0.0.0.0', 8765)
+        backend = stopleak_db(DB_NAME)
+        # Start the backend
+        asyncio.get_event_loop().run_until_complete(server)
+        asyncio.get_event_loop().run_forever()
+    except KeyboardInterrupt:
+        # Close the db correctly
+        pass
