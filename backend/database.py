@@ -1,3 +1,4 @@
+import random
 import sqlite3
 """
 The database schema for our backend:
@@ -8,6 +9,7 @@ The database schema for our backend:
 -----------------------------------------------
 
 """
+
 
 class stopleak_db(object):
     def __init__(self, db_name):
@@ -31,4 +33,7 @@ class stopleak_db(object):
         pass
 
     def record_get_scrub_percent(self):
+        percentage = int(random.uniform(0.1, 1.0) * 100)
         print("Unimplemented function: 'record_get_scrub_percent'")
+        print("Returning a random percent: {}".format(percentage))
+        return percentage
