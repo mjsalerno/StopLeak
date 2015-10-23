@@ -3,18 +3,25 @@ import asyncio
 import websockets
 import database
 import sqlite3
+import json
+import pprint
+
 
 DB_NAME = 'test.db'
 
 
 def handle_request(websocket, path):
     request = yield from websocket.recv()
-
-    print(request)
+    request_json = json.loads(request)
+    pp = pprint.PrettyPrinter()
+    
+    
+    print("Incoming request:" + " " + request)
+    print("Deserialized request:")
+    pp.pprint(request_json)
 
     if request == "record_tally":
         backend.record_tally()
-
     if request == "record_add_domain":
         backend.record_add_domain()
     if request == "record_get_best_option":
