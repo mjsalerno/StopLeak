@@ -4,17 +4,37 @@ import websockets
 import database
 import json
 import sqlite3
+<<<<<<< HEAD
+import json
+import pprint
+
+=======
 from database import stopleak_db
+>>>>>>> 5194cfc67e2a3c0a22b07b40e793ca299c48a0fa
 
 DB_NAME = 'test.db'
 
 
 def handle_request(websocket, path):
     request = yield from websocket.recv()
+<<<<<<< HEAD
+    request_json = json.loads(request)
+    pp = pprint.PrettyPrinter()
+    
+    
+    print("Incoming request:" + " " + request)
+    print("Deserialized request:")
+    pp.pprint(request_json)
+
+    if request == "record_tally":
+        backend.record_tally()
+    if request == "record_add_domain":
+=======
 
     if request == "record_tally":
         backend.record_tally()
     elif request == "record_add_domain":
+>>>>>>> 5194cfc67e2a3c0a22b07b40e793ca299c48a0fa
         backend.record_add_domain()
     elif request == "record_get_best_option":
         backend.record_get_best_option()
