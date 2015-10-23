@@ -1,0 +1,2 @@
+websockets>=2.6
+asyncio>=0
