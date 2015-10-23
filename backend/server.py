@@ -2,6 +2,7 @@
 import asyncio
 import websockets
 import database
+import json
 import sqlite3
 from database import stopleak_db
 
@@ -18,8 +19,12 @@ def handle_request(websocket, path):
     elif request == "record_get_best_option":
         backend.record_get_best_option()
     elif request == "record_get_scrub_percent":
-        result = backend.record_get_scrub_percent()
-        yield from websocket.send(str(result))
+        percent = backend.record_get_scrub_percent()
+        result = {
+            'type': 'record_get_scrub_percent',
+            'value': percent
+        }
+        yield from websocket.send(json.dumps(result))
     else:
         print("Unsupported request: {}".format(request))
 
