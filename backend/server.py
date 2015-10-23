@@ -20,11 +20,11 @@ def handle_request(websocket, path):
     print("Deserialized request:")
     pp.pprint(request_json)
 
-    if request == "record_tally":
+    if request['type'] == "record_tally":
         backend.record_tally()
-    elif request == "record_add_domain":
+    elif request['type'] == "record_add_domain":
         backend.record_add_domain()
-    elif request == "record_get_best_option":
+    elif request['type'] == "record_get_best_option":
         option_counts = backend.record_get_best_option()
         result = {
             'type' : 'record_get_best_option',
@@ -32,7 +32,7 @@ def handle_request(websocket, path):
         }
         yield from websocket.send(json.dumps(result))
         
-    elif request == "record_get_scrub_percent":
+    elif request['type'] == "record_get_scrub_percent":
         percent = backend.record_get_scrub_percent()
         result = {
             'type': 'record_get_scrub_percent',
