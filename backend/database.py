@@ -55,7 +55,10 @@ class stopleak_db(object):
         self.c.execute('SELECT scrub, block, nothing  FROM domain_data WHERE domain = ?', (domain,))
         result = self.c.fetchone()
         # result column order is  order of query
-        result = {"scrub": result[0], "block": result[1], "nothing": result[2]}
+        if result:
+            result = {"scrub": result[0], "block": result[1], "nothing": result[2]}
+        else:
+            result = {"scrub": 0, "block": 0, "nothing": 0}
         return result
 
     def close(self):
