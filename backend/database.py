@@ -51,7 +51,7 @@ class stopleak_db(object):
         self.c.execute('SELECT * FROM domain_data WHERE domain = ?', (domain,))
         row = self.c.fetchone()
 
-    def record_get_best_option(self):
+    def record_get_best_option(self, domain):
         self.c.execute('SELECT scrub, block, nothing  FROM domain_data WHERE domain = ?', (domain,))
         result = self.c.fetchone()
         # result column order is  order of query

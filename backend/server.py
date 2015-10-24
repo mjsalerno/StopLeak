@@ -38,11 +38,12 @@ def handle_request(websocket, path):
         print("Request: " + function)
         backend.record_add_domain()
     elif function == "record_get_best_option":
-        option_counts = backend.record_get_best_option()
+        option_counts = backend.record_get_best_option(args['domain'])
         result = {
             'type': 'record_get_best_option',
             'value': option_counts
         }
+        print('SENDING: {}'.format(result))
         yield from websocket.send(json.dumps(result))
     elif function == "record_get_scrub_percent":
         percent = backend.record_get_scrub_percent()
