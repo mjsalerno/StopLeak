@@ -30,7 +30,11 @@ wsConnection.onmessage = function(event) {
             else if(largest === results.nothing) { method = 'do nothing.'; }
             else { method = 'block'; }
             // Update the plugin
-            $('#comm-result').html(percentage + '% of users chose to ' + method);
+            if(largest > 0) {
+                $('#comm-result').html(percentage + '% of users chose to ' + method);
+            } else {
+                $('#comm-result').html('No data is being tracked for this domain.');
+            }
             break;
         default:
             console.log('Unsupported event: ' + message.type + ' received.');
@@ -100,15 +104,15 @@ function getActionCount(payload) {
     //var socket = io('ws://130.245.72.86:8765');
     //socket.emit('chat message', 'does it work');
     wsConnection.onopen = function() {
-        // console.log(evt);
+        // FIXME: This tabs URL should be replaced with the leaky url
+        // FIXME: That the site is trying to leak to.
         chrome.tabs.getSelected(null, function(tab) {
             // Extract the domain, preserving any subdomains
+            // FIXME: subdomains should be treated the same as their main domains
             var result = tab.url.match(/(?:https?:\/\/)?(?:www\.)?(.*?)\//);
             var domain = result[result.length - 1];
             // Build the payload
             payload = {
-                /* TODO: Change function to the real one when its done */
-                // 'function': 'record_get_scrub_percent',
                 'function': 'record_get_best_option',
                 'args': {
                     'domain': domain
