@@ -17,9 +17,10 @@ var stopleak = stopleak || {};
 stopleak.blocks = {};
 
 // Filter out request from the main frame (the
-var requestFilter = {
+stopleak.requestFilter = {
   urls: ['<all_urls>'],
-  types: ['sub_frame']
+  // Everything but 'main_frame'
+  types: ['sub_frame', 'stylesheet', 'script', 'image', 'object', 'xmlhttprequest', 'other']
 };
 
 /**
@@ -31,6 +32,7 @@ function incBlockCount(tabId) {
     stopleak.blocks[tabId] = 0;
   }
   stopleak.blocks[tabId] += 1;
+  chrome.browserAction.setBadgeText({text: '' + stopleak.blocks[tabId], tabId: tabId});
 }
 
 /**
@@ -60,26 +62,26 @@ function onBeforeSendHeaders(details) {
  * @return {!Object} The BlockingResponse to allow or deny this request.
  */
 function onBeforeRequest(details) {
-  var cancel = {cancel: false};
+  var cancel = false;
   if(details.tabId !== chrome.tabs.TAB_ID_NONE) {
-    console.log(details);
+    console.debug(details);
     var str = JSON.stringify(details);
-    if(str.indexOf('shane') !== -1) {
-      console.log('Blocking request to ' + details.url);
+    if (str.indexOf('shane') !== -1) {
+      console.debug('Blocking request to ' + details.url);
       incBlockCount(details.tabId);
-      cancel.cancel = true;
+      cancel = true;
     }
   }
-  return cancel;
+  return {cancel: cancel};
 }
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
   onBeforeSendHeaders,
-  requestFilter,
+  stopleak.requestFilter,
   ['blocking', 'requestHeaders']);
 
 
 chrome.webRequest.onBeforeRequest.addListener(
   onBeforeRequest,
-  requestFilter,
+  stopleak.requestFilter,
   ['blocking', 'requestBody']);
