@@ -14,13 +14,9 @@ The database schema for our backend:
 def create_stopleak_db(file_name):
     conn = sqlite3.connect(file_name)
     c = conn.cursor()
-
-
     c.execute("CREATE TABLE domain_data (domain TEXT PRIMARY KEY, scrub INT DEFAULT 0, \
                block INT DEFAULT 0, nothing INT DEFAULT 0)")
-
     conn.commit()
-
     conn.close()
 
 
@@ -30,20 +26,20 @@ class stopleak_db(object):
         self.c = self.conn.cursor()
 
     def record_tally(self, domain, choice):
+        # XX
+        # CHECK IF EXISTS
+
         # avoid sql injection with param substitution
 
         # you cannot substitute table or column names
         options = {
-
             "scrub": "scrub",
-
             "block": "block",
-
             "nothing": "nothing"
         }
-
-        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ? + 1 where domain = ? ', (choice, domain))
-
+        print("Domain: " + domain)
+        print("Choice: " + choice)
+        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ' + options[choice] + ' + 1 WHERE domain = ? ', (domain,))
         self.conn.commit()
 
     def record_add_domain(self, domain):
@@ -55,15 +51,19 @@ class stopleak_db(object):
         self.c.execute('SELECT * FROM domain_data WHERE domain = ?', (domain,))
         row = self.c.fetchone()
 
-    def record_get_best_option(self):
+    def record_get_best_option(self, domain):
         self.c.execute('SELECT scrub, block, nothing  FROM domain_data WHERE domain = ?', (domain,))
         result = self.c.fetchone()
         # result column order is  order of query
-        result = {"scrub" : result[0], "block" : result[1], "nothing": result[2] }
-
+        if result:
+            result = {"scrub": result[0], "block": result[1], "nothing": result[2]}
+        else:
+            result = {"scrub": 0, "block": 0, "nothing": 0}
         return result
 
     def close(self):
+        # commit just in case
+        self.conn.commit()
         self.conn.close()
 
     def record_get_scrub_percent(self):

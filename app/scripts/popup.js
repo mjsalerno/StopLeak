@@ -16,9 +16,25 @@ wsConnection.onmessage = function(event) {
     var message = JSON.parse(event.data);
     // console.log('Message:'  + message);
     switch(message.type) {
-        case 'record_get_scrub_percent':
-            /* TODO: Eventually this will eventualy compute the % of 3 different values */
-            $('#comm-result').html(message.value + '% of users chose Scrub');
+        case 'record_get_best_option':
+            var results = message.value;
+            var method = 'NONE';
+            // Compute the total for the percentage
+            var sum = results.scrub + results.nothing + results.block;
+            // Find the largest value
+            var largest = results.scrub > results.nothing ? (results.scrub > results.block ? results.scrub : results.block) : (results.nothing > results.block ? results.nothing : results.block);
+            // Compute the percentage
+            var percentage = parseInt((largest / sum) * 100);
+            // Nasty if, else to determine the method
+            if(largest === results.scrub){ method = 'scrub.'; }
+            else if(largest === results.nothing) { method = 'do nothing.'; }
+            else { method = 'block'; }
+            // Update the plugin
+            if(largest > 0) {
+                $('#comm-result').html(percentage + '% of users chose to ' + method);
+            } else {
+                $('#comm-result').html('No data is being tracked for this domain.');
+            }
             break;
         default:
             console.log('Unsupported event: ' + message.type + ' received.');
@@ -88,15 +104,22 @@ function getActionCount(payload) {
     //var socket = io('ws://130.245.72.86:8765');
     //socket.emit('chat message', 'does it work');
     wsConnection.onopen = function() {
-        // console.log(evt);
-        payload = {
-            /* TODO: Change function to the real one when its done */
-            'function': 'record_get_scrub_percent',
-            'args': {
-                'domain': 'www.SHANE_MAKE_ME_WORK.awesome'
-            }
-        };
-        wsConnection.send(JSON.stringify(payload));
+        // FIXME: This tabs URL should be replaced with the leaky url
+        // FIXME: That the site is trying to leak to.
+        chrome.tabs.getSelected(null, function(tab) {
+            // Extract the domain, preserving any subdomains
+            // FIXME: subdomains should be treated the same as their main domains
+            var result = tab.url.match(/(?:https?:\/\/)?(?:www\.)?(.*?)\//);
+            var domain = result[result.length - 1];
+            // Build the payload
+            payload = {
+                'function': 'record_get_best_option',
+                'args': {
+                    'domain': domain
+                }
+            };
+            wsConnection.send(JSON.stringify(payload));
+        });
     };
 }
 
