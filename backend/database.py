@@ -30,6 +30,7 @@ class stopleak_db(object):
         # avoid sql injection with param substitution
 
         # you cannot substitute table or column names
+
         options = ['scrub', 'block', 'allow']
         if choice not in options:
             log('Invalid column name: ', choice)
@@ -40,7 +41,7 @@ class stopleak_db(object):
                        .format(choice),
                        (domain,))
         self.conn.commit()
-
+        
     def record_add_domain(self, domain):
         domain = domain.lower()
         self.c.execute('INSERT INTO domain_data (domain) VALUES (?)', (domain,))
