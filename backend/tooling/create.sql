@@ -1,7 +1,7 @@
 CREATE TABLE domain_data (domain TEXT PRIMARY KEY, scrub INT DEFAULT 0,
-           block INT DEFAULT 0, nothing INT DEFAULT 0);
+           block INT DEFAULT 0, allow INT DEFAULT 0);
 
-INSERT INTO domain_data (domain, scrub, block, nothing) VALUES
+INSERT INTO domain_data (domain, scrub, block, allow) VALUES
 ('google.com', ABS(RANDOM()) % 1000,  ABS(RANDOM() % 1000), ABS(RANDOM() % 1000)),
 ('facebook.com', ABS(RANDOM()) % 1000,  ABS(RANDOM() % 1000), ABS(RANDOM() % 1000)),
 ('youtube.com', ABS(RANDOM()) % 1000,  ABS(RANDOM() % 1000), ABS(RANDOM() % 1000)),

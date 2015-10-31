@@ -1,21 +1,19 @@
 import random
 import sqlite3
+from logging import log
 """
 The database schema for our backend:
-
-  Name   | Option Tally | Option Tally |....etc|
------------------------------------------------
-         |              |              |       |
------------------------------------------------
-
+----------------------------------------------------
+| domain | scrub count | block count | allow count |
+----------------------------------------------------
 """
 
 
 def create_stopleak_db(file_name):
     conn = sqlite3.connect(file_name)
     c = conn.cursor()
-    c.execute("CREATE TABLE domain_data (domain TEXT PRIMARY KEY, scrub INT DEFAULT 0, \
-               block INT DEFAULT 0, nothing INT DEFAULT 0)")
+    c.execute("CREATE TABLE domain_data (domain TEXT PRIMARY KEY, scrub INT \
+        DEFAULT 0, block INT DEFAULT 0, allow INT DEFAULT 0)")
     conn.commit()
     conn.close()
 
@@ -32,15 +30,16 @@ class stopleak_db(object):
         # avoid sql injection with param substitution
 
         # you cannot substitute table or column names
-        options = {
-            "scrub": "scrub",
-            "block": "block",
-            "nothing": "nothing"
-        }
-        print("Domain: " + domain)
-        print("Choice: " + choice)
-        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ' + options[choice] +
-                           ' + 1 WHERE domain = ? ', (domain,))
+
+        options = ['scrub', 'block', 'allow']
+        if choice not in options:
+            log('Invalid column name: ', choice)
+            self.conn.rollback()
+            return
+        log(choice, ' : ', domain)
+        self.c.execute('UPDATE domain_data SET {0}= {0} + 1 WHERE domain = ?'
+                       .format(choice),
+                       (domain,))
         self.conn.commit()
         
     def record_add_domain(self, domain):
@@ -53,13 +52,13 @@ class stopleak_db(object):
         row = self.c.fetchone()
 
     def record_get_best_option(self, domain):
-        self.c.execute('SELECT scrub, block, nothing  FROM domain_data WHERE domain = ?', (domain,))
+        self.c.execute('SELECT scrub, block, allow  FROM domain_data WHERE domain = ?', (domain,))
         result = self.c.fetchone()
         # result column order is  order of query
         if result:
-            result = {"scrub": result[0], "block": result[1], "nothing": result[2]}
+            result = {"scrub": result[0], "block": result[1], "allow": result[2]}
         else:
-            result = {"scrub": 0, "block": 0, "nothing": 0}
+            result = {"scrub": 0, "block": 0, "allow": 0}
         return result
 
     def close(self):

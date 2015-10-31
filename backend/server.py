@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # *API*
-# {"function" : "record_tally", "args": {"domain": "www.hello.com", "choice": "nothing" } }
+# {"function" : "record_tally", "args": {"domain": "www.hello.com", "choice": "allow" } }
 
 import asyncio
 import websockets
