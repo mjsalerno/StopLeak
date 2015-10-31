@@ -1,7 +1,4 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-/*global $, chrome, XMLHttpRequest, document*/
+/*global $, chrome, document*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
