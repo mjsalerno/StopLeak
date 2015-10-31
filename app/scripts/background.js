@@ -61,9 +61,8 @@ function onCreated(tab) {
  * @param {int} tabId Id of updated tab.
  * @param {object} changeInfo Lists the changes to the state of the tab that
  *     was updated.
- * @param {object} tab Gives the state of the tab that was updated.
  */
-function onUpdated(tabId, changeInfo, tab) {
+function onUpdated(tabId, changeInfo) {
   if (changeInfo.hasOwnProperty('url')) {
     stopleak.tabUrls[tabId] = getDomain(changeInfo.url);
   }
@@ -72,9 +71,8 @@ function onUpdated(tabId, changeInfo, tab) {
 /**
  * Fired when a tab is closed.
  * @param {int} tabId Id of removed tab.
- * @param {object} removeInfo Info about removed tab.
  */
-function onRemoved(tabId, removeInfo) {
+function onRemoved(tabId) {
   delete stopleak.tabUrls[tabId];
 }
 
@@ -102,15 +100,6 @@ function incBlockCount(tabId) {
     text: '' + stopleak.blocks[tabId],
     tabId: tabId
   });
-}
-
-/**
- * Returns a string encoding of the ArrayBuffer
- * @param {!ArrayBuffer} buf
- * @return {String} string encoding of buf
- */
-function array2string(buf) {
-  return new TextDecoder().decode(new Uint8Array(buf));
 }
 
 /**
@@ -166,7 +155,7 @@ function filterCrossDomain(onBeforeCallback) {
       return;
     }
     return onBeforeCallback(details, destDomain);
-  }
+  };
 }
 
 // Tab urls
