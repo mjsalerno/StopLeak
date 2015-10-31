@@ -13,12 +13,15 @@ wsConnection.onmessage = function(event) {
     var message = JSON.parse(event.data);
     // console.log('Message:'  + message);
     switch(message.type) {
-        case 'record_get_best_option':
+        case 'get_counts':
             var results = message.value;
+            var percentBlock = 0, percentScrub = 0, percentAllow = 0;
             var total = results.block + results.scrub + results.allow;
-            var percentBlock = parseInt(results.block / total * 100);
-            var percentScrub = parseInt(results.scrub / total * 100);
-            var percentAllow = parseInt(results.allow / total * 100);
+            if (total !== 0) {
+                percentBlock = parseInt(results.block / total * 100);
+                percentScrub = parseInt(results.scrub / total * 100);
+                percentAllow = parseInt(results.allow / total * 100);
+            }
 
             $('#block-button').html('Block ' + results.block +' (' + percentBlock + '%)');
             $('#scrub-button').html('Scrub ' + results.scrub +' (' + percentScrub + '%)');
@@ -101,7 +104,7 @@ function getActionCount(payload) {
             var domain = result[result.length - 1];
             // Build the payload
             payload = {
-                'function': 'record_get_best_option',
+                'function': 'get_counts',
                 'args': {
                     'domain': domain
                 }
