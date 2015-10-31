@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # *API*
-# {"function" : "record_tally", "args": {"domain": "www.hello.com", "choice": "allow" } }
+# {"function" : "tally", "args": {"domain": "www.hello.com", "choice": "allow" } }
 
 import asyncio
 import websockets
@@ -42,40 +42,29 @@ def handle_request(websocket, path):
     function = request_json['function']
     args = request_json['args']
 
-    if function == "record_tally":
+    if function == "tally":
         try:
-            backend.record_tally(**args)
+            backend.tally(**args)
         except Exception as e:
-            module_logger.warning("Record_tally threw an exception", exc_info = True)
+            module_logger.warning("tally threw an exception", exc_info = True)
             
-    elif function == "record_add_domain":
+    elif function == "add_domain":
         print("Request: " + function)
         try:
-            backend.record_add_domain(**args)
+            backend.add_domain(**args)
         except Exception as e:
-            module_logger.warning("Record_add_domain threw an exception", exc_info = True)
-    elif function == "record_get_best_option":
+            module_logger.warning("add_domain threw an exception", exc_info = True)
+    elif function == "get_counts":
         try:
-            option_counts = backend.record_get_best_option(**args)
+            option_counts = backend.get_counts(**args)
         except Exception as e:
-            module_logger.warning("Record_get_best_option threw an exception", exc_info = True)
+            module_logger.warning("get_counts threw an exception", exc_info = True)
 
         result = {
-            'type': 'record_get_best_option',
+            'type': 'get_counts',
             'value': option_counts
         }
         print('SENDING: {}'.format(result))
-        yield from websocket.send(json.dumps(result))
-    elif function == "record_get_scrub_percent":
-    try:
-        percent = backend.record_get_scrub_percent()
-    except Exception as e:
-        module_logger.warning("Record_get_scrub_percent threw an exception", exc_info = True)
-
-        result = {
-            'type': 'record_get_scrub_percent',
-            'value': percent
-        }
         yield from websocket.send(json.dumps(result))
     else:
         print("Unsupported request: {}".format(function))
