@@ -39,9 +39,10 @@ class stopleak_db(object):
         }
         print("Domain: " + domain)
         print("Choice: " + choice)
-        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ' + options[choice] + ' + 1 WHERE domain = ? ', (domain,))
+        self.c.execute('UPDATE domain_data SET' + ' ' + options[choice] + ' = ' + options[choice] +
+                           ' + 1 WHERE domain = ? ', (domain,))
         self.conn.commit()
-
+        
     def record_add_domain(self, domain):
         domain = domain.lower()
         self.c.execute('INSERT INTO domain_data (domain) VALUES (?)', (domain,))
