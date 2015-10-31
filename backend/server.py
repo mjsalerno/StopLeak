@@ -5,14 +5,13 @@
 
 import asyncio
 import websockets
-import database
 import json
-import sqlite3
 import pprint
 import logging
 from database import stopleak_db
 
 DB_NAME = 'test.db'
+
 
 def create_logger():
     logger =logging.getLogger('server_logger')
@@ -27,6 +26,7 @@ def create_logger():
     logger.addHandler(fh)
 
     return logger
+
 
 def handle_request(websocket, path):
     request = yield from websocket.recv()
