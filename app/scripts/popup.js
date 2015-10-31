@@ -20,14 +20,14 @@ wsConnection.onmessage = function(event) {
             var results = message.value;
             var method = 'NONE';
             // Compute the total for the percentage
-            var sum = results.scrub + results.nothing + results.block;
+            var sum = results.scrub + results.allow + results.block;
             // Find the largest value
-            var largest = results.scrub > results.nothing ? (results.scrub > results.block ? results.scrub : results.block) : (results.nothing > results.block ? results.nothing : results.block);
+            var largest = Math.max(results.scrub, results.allow, results.block);
             // Compute the percentage
             var percentage = parseInt((largest / sum) * 100);
             // Nasty if, else to determine the method
             if(largest === results.scrub){ method = 'scrub.'; }
-            else if(largest === results.nothing) { method = 'do nothing.'; }
+            else if(largest === results.allow) { method = 'allow.'; }
             else { method = 'block'; }
             // Update the plugin
             if(largest > 0) {
