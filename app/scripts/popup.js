@@ -18,23 +18,14 @@ wsConnection.onmessage = function(event) {
     switch(message.type) {
         case 'record_get_best_option':
             var results = message.value;
-            var method = 'NONE';
-            // Compute the total for the percentage
-            var sum = results.scrub + results.allow + results.block;
-            // Find the largest value
-            var largest = Math.max(results.scrub, results.allow, results.block);
-            // Compute the percentage
-            var percentage = parseInt((largest / sum) * 100);
-            // Nasty if, else to determine the method
-            if(largest === results.scrub){ method = 'scrub.'; }
-            else if(largest === results.allow) { method = 'allow.'; }
-            else { method = 'block'; }
-            // Update the plugin
-            if(largest > 0) {
-                $('#comm-result').html(percentage + '% of users chose to ' + method);
-            } else {
-                $('#comm-result').html('No data is being tracked for this domain.');
-            }
+            var total = results.block + results.scrub + results.allow;
+            var percentBlock = parseInt(results.block / total * 100);
+            var percentScrub = parseInt(results.scrub / total * 100);
+            var percentAllow = parseInt(results.allow / total * 100);
+
+            $('#block-button').html('Block ' + results.block +' (' + percentBlock + '%)');
+            $('#scrub-button').html('Scrub ' + results.scrub +' (' + percentScrub + '%)');
+            $('#allow-button').html('Allow ' + results.allow +' (' + percentAllow + '%)');
             break;
         default:
             console.log('Unsupported event: ' + message.type + ' received.');
