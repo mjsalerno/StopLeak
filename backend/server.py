@@ -12,8 +12,6 @@ import pprint
 from database import stopleak_db
 
 DB_NAME = 'test.db'
-# DB_NAME = 'new_db'
-
 
 def handle_request(websocket, path):
     request = yield from websocket.recv()
@@ -36,9 +34,9 @@ def handle_request(websocket, path):
         backend.record_tally(**args)
     elif function == "record_add_domain":
         print("Request: " + function)
-        backend.record_add_domain()
+        backend.record_add_domain(**args)
     elif function == "record_get_best_option":
-        option_counts = backend.record_get_best_option(args['domain'])
+        option_counts = backend.record_get_best_option(**args)
         result = {
             'type': 'record_get_best_option',
             'value': option_counts
