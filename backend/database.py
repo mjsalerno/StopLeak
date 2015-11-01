@@ -1,5 +1,5 @@
 import sqlite3
-from logging import log
+import logging
 """
 The database schema for our backend:
 ----------------------------------------------------
@@ -11,34 +11,36 @@ The database schema for our backend:
 def create_stopleak_db(file_name):
     conn = sqlite3.connect(file_name)
     c = conn.cursor()
-    c.execute("CREATE TABLE domain_data (domain TEXT PRIMARY KEY, scrub INT \
-        DEFAULT 0, block INT DEFAULT 0, allow INT DEFAULT 0)")
+    create = ('CREATE TABLE domain_data ('
+              'domain TEXT PRIMARY KEY,'
+              'scrub INT DEFAULT 0,'
+              'block INT DEFAULT 0,'
+              'allow INT DEFAULT 0)')
+    c.execute(create)
     conn.commit()
     conn.close()
 
 
-class stopleak_db(object):
+class StopleakDB(object):
     def __init__(self, db_name):
         self.conn = sqlite3.connect(db_name)
         self.c = self.conn.cursor()
 
     def tally(self, domain, choice):
-        # XX
-        # CHECK IF EXISTS
-
-        # avoid sql injection with param substitution
-
-        # you cannot substitute table or column names
-
         options = ['scrub', 'block', 'allow']
         if choice not in options:
-            log('Invalid column name: ', choice)
+            logging.warning('Received invalid choice: %s', choice)
             self.conn.rollback()
             return
-        log(choice, ' : ', domain)
-        self.c.execute('UPDATE domain_data SET {0}= {0} + 1 WHERE domain = ?'
-                       .format(choice),
-                       (domain,))
+
+        logging.info('%s %s', choice, domain)
+        # Since we'd mostly do updates this could be a bottleneck.
+        insert = 'INSERT OR IGNORE INTO domain_data (domain) VALUES (?)'
+        self.c.execute(insert, (domain,))
+        update = ('UPDATE domain_data '
+                  'SET {0}= {0} + 1 '
+                  'WHERE domain = ?'.format(choice))
+        self.c.execute(update, (domain,))
         self.conn.commit()
         
     def add_domain(self, domain):
@@ -51,7 +53,10 @@ class stopleak_db(object):
         row = self.c.fetchone()
 
     def get_counts(self, domain):
-        self.c.execute('SELECT scrub, block, allow  FROM domain_data WHERE domain = ?', (domain,))
+        select = ('SELECT scrub, block, allow '
+                  'FROM domain_data '
+                  'WHERE domain = ?')
+        self.c.execute(select, (domain,))
         result = self.c.fetchone()
         # result column order is  order of query
         if result:
