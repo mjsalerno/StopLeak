@@ -16,6 +16,10 @@ var stopleak = stopleak || {};
 
 stopleak.blocks = {};
 stopleak.tabUrls = {};
+stopleak.PIIData = 0;
+
+getUserData();
+chrome.storage.onChanged.addListener(getUserData);
 
 // Filter out request from the main frame (the
 stopleak.requestFilter = {
@@ -31,6 +35,27 @@ stopleak.requestFilter = {
     'other'
   ]
 };
+
+
+/*
+Assign user PII data to stopleak.PIIData
+*/
+function getUserData()
+{
+    chrome.storage.sync.get('filter', function(list){
+	stopleak.PIIData = list['filter'];
+    });
+}
+
+function setUserData(object)
+{
+    chrome.storage.sync.set({object});
+}
+
+function removeUserData(object)
+{
+    chrome.storage.sync.remove(object);    
+}
 
 /**
  * Return the domain name from a url.
@@ -128,16 +153,21 @@ function onBeforeSendHeaders(details, destDomain) {
  * @return {object} The BlockingResponse to allow or deny this request.
  */
 function onBeforeRequest(details, destDomain) {
-  var cancel = false;
+    var cancel = false;
+    
+    //console.debug(details);
+    var str = JSON.stringify(details);
 
-  //console.debug(details);
-  var str = JSON.stringify(details);
-  if (str.indexOf('shane') !== -1) {
-    console.debug('Blocking request to ' + destDomain);
-    incBlockCount(details.tabId);
-    cancel = true;
-  }
-  return {cancel: cancel};
+    for (var blockString in stopleak.PIIData)
+    {
+	if (str.indexOf(stopleak.PIIData[blockString]) !== -1) {
+	    console.debug('Blocking request to ' + destDomain);
+	    incBlockCount(details.tabId);
+	    cancel = true;
+	}
+    }
+    
+    return {cancel: cancel};
 }
 
 /**

@@ -24,10 +24,6 @@
     "default_popup": "popup.html"
   },
   "options_page": "options.html",
-  "options_ui": {
-    "page": "options.html",
-    "chrome_style": true
-  },
   "content_scripts": [
     {
       "matches": [
@@ -46,6 +42,7 @@
     "http://*/*",
     "https://*/*",
     "webRequest",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "storage"
   ]
 }
