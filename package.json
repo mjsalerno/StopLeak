@@ -19,8 +19,6 @@
     "grunt-contrib-uglify": "~0.9.2",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-mocha": "~0.4.13",
-    "grunt-pip": "git+https://github.com/dshrader38/grunt-pip.git",
-    "grunt-pylint": "^1.2.0",
     "grunt-svgmin": "~2.0.1",
     "grunt-usemin": "~3.1.1",
     "jit-grunt": "^0.9.1",
