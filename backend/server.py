@@ -6,37 +6,60 @@
 import asyncio
 import websockets
 import json
-import pprint
 import logging
-from database import StopleakDB
+import database
 
 DB_NAME = 'test.db'
 
 
-def create_logger():
-    logger = logging.getLogger('server_logger')
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler('server.log')
-    # log everything to file
-    fh.setLevel(logging.NOTSET)
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    # add the handlers to logger
-    logger.addHandler(fh)
+class StopLeak(object):
 
-    return logger
+    def __init__(self, db_name, host, port):
+        self.db = database.StopleakDB(db_name)
+        self.server = websockets.serve(handle_request, host, port)
+        self.host = host
+        self.port = port
 
 
+def main():
+    global stopLeak
+
+    init_logging()
+
+    stopLeak = StopLeak(DB_NAME, 'localhost', 8765)
+    try:
+        # Start the backend
+        asyncio.get_event_loop().run_until_complete(stopLeak.server)
+        asyncio.get_event_loop().run_forever()
+    except KeyboardInterrupt:
+        # Close the db correctly
+        if stopLeak.db:
+            stopLeak.db.close()
+
+
+def init_logging():
+    fmt = '%(asctime)s - %(name)s - %(levelname)s: %(message)s'
+    logging.basicConfig(filename='server.log', format=fmt, level=logging.DEBUG)
+    init_ws_logging()
+
+
+def init_ws_logging():
+    """
+    The websockets module logs errors to 'websockets.server' so let's print those.
+    """""
+    logger = logging.getLogger('websockets.server')
+    logger.setLevel(logging.ERROR)
+    logger.addHandler(logging.StreamHandler())
+
+
+@asyncio.coroutine
 def handle_request(websocket, path):
-    request = yield from websocket.recv()
-    print(request)
-    request_json = json.loads(request)
-    pp = pprint.PrettyPrinter()
+    global stopLeak
 
-    print("Incoming request:" + " " + request)
-    print("Deserialized request:")
-    pp.pprint(request_json)
+    request = yield from websocket.recv()
+    request_json = json.loads(request)
+
+    stopLeak.logger.debug("Incoming request: %s", request_json)
 
     # Extract the function name and arguments from the request
     function = request_json['function']
@@ -44,44 +67,30 @@ def handle_request(websocket, path):
 
     if function == "tally":
         try:
-            backend.tally(**args)
+            stopLeak.db.tally(**args)
         except Exception as e:
-            logger.warning("tally threw an exception", exc_info=True)
+            stopLeak.logger.warning("tally threw an exception", exc_info=True)
             
     elif function == "add_domain":
-        print("Request: " + function)
         try:
-            backend.add_domain(**args)
+            stopLeak.db.add_domain(**args)
         except Exception as e:
-            logger.warning("add_domain threw an exception", exc_info=True)
+            stopLeak.logger.warning("add_domain threw an exception", exc_info=True)
     elif function == "get_counts":
         try:
-            option_counts = backend.get_counts(**args)
+            option_counts = stopLeak.db.get_counts(**args)
+            result = {
+                'type': 'get_counts',
+                'value': option_counts
+            }
+            stopLeak.logger.debug('SENDING: %s', result)
+            yield from websocket.send(json.dumps(result))
         except Exception as e:
-            logger.warning("get_counts threw an exception", exc_info=True)
-
-        result = {
-            'type': 'get_counts',
-            'value': option_counts
-        }
-        print('SENDING: {}'.format(result))
-        yield from websocket.send(json.dumps(result))
+            stopLeak.logger.warning("get_counts threw an exception", exc_info=True)
     else:
-        print("Unsupported request: {}".format(function))
+        stopLeak.logger.error("Unsupported request: {}".format(function))
 
 
 if __name__ == "__main__":
-    backend = None
-    try:
-        server = websockets.serve(handle_request, 'localhost', 8765)
-        # server = websockets.serve(handle_request, '0.0.0.0', 8765)
-        backend = StopleakDB(DB_NAME)
+    main()
 
-        logger = create_logger()
-        # Start the backend
-        asyncio.get_event_loop().run_until_complete(server)
-        asyncio.get_event_loop().run_forever()
-    except KeyboardInterrupt:
-        # Close the db correctly
-        if backend:
-            backend.close()
