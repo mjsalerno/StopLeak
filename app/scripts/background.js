@@ -1,4 +1,5 @@
 'use strict';
+/* global BLOCKED_STRINGS */
 
 chrome.runtime.onInstalled.addListener(function (details) {
   console.log('previousVersion', details.previousVersion);
@@ -17,6 +18,19 @@ var stopleak = stopleak || {};
 stopleak.blocks = {};
 stopleak.tabUrls = {};
 stopleak.PIIData = 0;
+
+
+/*
+Assign user PII data (key is 'filter') to stopleak.PIIData
+*/
+
+function getUserData()
+{
+    chrome.storage.sync.get(BLOCKED_STRINGS, function(list){
+	stopleak.PIIData = list.BLOCKED_STRINGS;
+    });
+}
+
 
 getUserData();
 chrome.storage.onChanged.addListener(getUserData);
@@ -38,15 +52,6 @@ stopleak.requestFilter = {
 
 
 /*
-Assign user PII data to stopleak.PIIData
-*/
-function getUserData()
-{
-    chrome.storage.sync.get('filter', function(list){
-	stopleak.PIIData = list['filter'];
-    });
-}
-
 function setUserData(object)
 {
     chrome.storage.sync.set({object});
@@ -56,6 +61,9 @@ function removeUserData(object)
 {
     chrome.storage.sync.remove(object);    
 }
+
+*/
+
 
 /**
  * Return the domain name from a url.
