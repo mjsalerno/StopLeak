@@ -121,6 +121,11 @@ module.exports = function (grunt) {
         'test/leakysite/{,*/}*.js'
       ]
     },
+    pylint: {
+      all: {
+        src:'backend/{,*/}*.js'
+      },
+    },
     mocha: {
       all: {
         options: {
@@ -298,6 +303,8 @@ module.exports = function (grunt) {
       }
     }
   });
+
+  grunt.loadNpmTasks('grunt-pylint');
 
   grunt.registerTask('debug', function () {
     grunt.task.run([
