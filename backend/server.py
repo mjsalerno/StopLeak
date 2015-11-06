@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
 
 # *API*
-# {"function" : "record_tally", "args": {"domain": "www.hello.com", "choice": "nothing" } }
+# {"function" : "tally", "args": {"domain": "www.hello.com", "choice": "allow" } }
 
 import asyncio
 import websockets
-import database
 import json
-import sqlite3
 import pprint
-from database import stopleak_db
+import logging
+from database import StopleakDB
 
 DB_NAME = 'test.db'
-# DB_NAME = 'new_db'
+
+
+def create_logger():
+    logger = logging.getLogger('server_logger')
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('server.log')
+    # log everything to file
+    fh.setLevel(logging.NOTSET)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(fh)
+
+    return logger
 
 
 def handle_request(websocket, path):
@@ -29,28 +42,29 @@ def handle_request(websocket, path):
     function = request_json['function']
     args = request_json['args']
 
-    if function == "record_tally":
+    if function == "tally":
+        try:
+            backend.tally(**args)
+        except Exception as e:
+            logger.warning("tally threw an exception", exc_info=True)
+            
+    elif function == "add_domain":
         print("Request: " + function)
-        print("Args: ")
-        pp.pprint(args)
-        backend.record_tally(**args)
-    elif function == "record_add_domain":
-        print("Request: " + function)
-        backend.record_add_domain()
-    elif function == "record_get_best_option":
-        option_counts = backend.record_get_best_option(args['domain'])
+        try:
+            backend.add_domain(**args)
+        except Exception as e:
+            logger.warning("add_domain threw an exception", exc_info=True)
+    elif function == "get_counts":
+        try:
+            option_counts = backend.get_counts(**args)
+        except Exception as e:
+            logger.warning("get_counts threw an exception", exc_info=True)
+
         result = {
-            'type': 'record_get_best_option',
+            'type': 'get_counts',
             'value': option_counts
         }
         print('SENDING: {}'.format(result))
-        yield from websocket.send(json.dumps(result))
-    elif function == "record_get_scrub_percent":
-        percent = backend.record_get_scrub_percent()
-        result = {
-            'type': 'record_get_scrub_percent',
-            'value': percent
-        }
         yield from websocket.send(json.dumps(result))
     else:
         print("Unsupported request: {}".format(function))
@@ -61,7 +75,9 @@ if __name__ == "__main__":
     try:
         server = websockets.serve(handle_request, 'localhost', 8765)
         # server = websockets.serve(handle_request, '0.0.0.0', 8765)
-        backend = stopleak_db(DB_NAME)
+        backend = StopleakDB(DB_NAME)
+
+        logger = create_logger()
         # Start the backend
         asyncio.get_event_loop().run_until_complete(server)
         asyncio.get_event_loop().run_forever()

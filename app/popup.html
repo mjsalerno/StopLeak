@@ -8,6 +8,7 @@
 <html>
 <!-- bower:js -->
 <script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
 <!-- endbower -->
 <head>
     <title>Getting Started Extension's Popup</title>
@@ -85,21 +86,15 @@
                     <td>Visited before:</td>
                     <td id='visited-result'>No</td>
                 </tr>
-                <tr>
-                    <td>Community:</td>
-                    <td id='comm-result'>66% of users chose Scrub</td>
-                </tr>
             </table>
         </div>
 
         <div class='container'>
-            <button type="button" onclick=''>Allow</button>&nbsp;&nbsp;
-            <button type="button" onclick=''>Scrub</button>&nbsp;&nbsp;
-            <button type="button" onclick=''>Stop</button>
+            <button type="button" id='block-button'>Block</button>&nbsp;&nbsp;
+            <button type="button" id='scrub-button'>Scrub</button>&nbsp;&nbsp;
+            <button type="button" id='allow-button'>Allow</button>
         </div>
 
-        <!--div id="status" hidden></div>
-        <img id="image-result" hidden-->
     </body>
 </html>
 
