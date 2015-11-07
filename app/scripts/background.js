@@ -15,22 +15,41 @@ var stopleak = stopleak || {};
 
 stopleak.blocks = {};
 stopleak.tabDomain = {};
-stopleak.PIIData = 0;
+stopleak.PIIData = [];
 
 
 /*
  Assign user PII data (key is 'filter') to stopleak.PIIData
  */
 
+/**
+ * Load user data from storage.
+ */
 function getUserData() {
     chrome.storage.sync.get(BLOCKED_STRINGS, function (list) {
         stopleak.PIIData = list.BLOCKED_STRINGS;
     });
 }
 
+/**
+ * Update the user data that has changed.
+ * @param {Object} changes Object mapping each key that changed to its
+ *     corresponding storage.StorageChange for that item.
+ * @param {string} areaName The name of the storage area ("sync", "local" or
+ *     "managed") the changes are for.
+ */
+function updateUserData(changes, areaName) {
+    console.log('Syncing user data update from ' + areaName);
+    if (changes.hasOwnProperty(BLOCKED_STRINGS)) {
+        var change = changes[BLOCKED_STRINGS];
+        if (change.hasOwnProperty('newValue')) {
+            stopleak.PIIData = change.newValue;
+        }
+    }
+}
 
 getUserData();
-chrome.storage.onChanged.addListener(getUserData);
+chrome.storage.onChanged.addListener(updateUserData);
 
 // Filter out request from the main frame (the
 stopleak.requestFilter = {
@@ -153,6 +172,7 @@ function onBeforeRequest(details, destDomain) {
             console.debug('Blocking request to ' + destDomain);
             incBlockCount(details.tabId);
             cancel = true;
+            break;
         }
     }
 
