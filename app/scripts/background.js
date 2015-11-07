@@ -6,8 +6,6 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
 chrome.browserAction.setBadgeText({text: '0'});
 
-console.log('\'Allo \'Allo! Event Page for Browser Action');
-
 /**
  * StopLeak namespace.
  * @namespace
@@ -19,17 +17,7 @@ stopleak.tabUrls = {};
 
 // Filter out request from the main frame (the
 stopleak.requestFilter = {
-  urls: ['<all_urls>'],
-  // Everything but 'main_frame'
-  types: [
-    'sub_frame',
-    'stylesheet',
-    'script',
-    'image',
-    'object',
-    'xmlhttprequest',
-    'other'
-  ]
+  urls: ['<all_urls>']
 };
 
 /**
@@ -96,6 +84,7 @@ function incBlockCount(tabId) {
     stopleak.blocks[tabId] = 0;
   }
   stopleak.blocks[tabId] += 1;
+  // NOTE: setBadgeText may print an error saying no such tab.
   chrome.browserAction.setBadgeText({
     text: '' + stopleak.blocks[tabId],
     tabId: tabId
@@ -114,9 +103,10 @@ function onBeforeSendHeaders(details, destDomain) {
   for (var i = details.requestHeaders.length - 1; i >= 0; --i) {
     if (details.requestHeaders[i].name === 'Cookie') {
       details.requestHeaders.splice(i, 1);
+      console.log('Dropped cookie for ' + destDomain);
+      incBlockCount(details.tabId);
     }
   }
-  console.log('Dropped cookie for ' + destDomain);
   return {requestHeaders: details.requestHeaders};
 }
 
@@ -150,8 +140,9 @@ function filterCrossDomain(onBeforeCallback) {
   return function (details) {
     var destDomain = getDomain(details.url);
     // Ignore requests going to the same domain.
-    if (details.tabId === chrome.tabs.TAB_ID_NONE ||
-      destDomain === stopleak.tabUrls[details.tabId]) {
+    if (details.type === 'main_frame' ||
+        details.tabId === chrome.tabs.TAB_ID_NONE ||
+        destDomain === stopleak.tabUrls[details.tabId]) {
       return;
     }
     return onBeforeCallback(details, destDomain);
