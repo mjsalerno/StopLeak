@@ -11,8 +11,8 @@
   "background": {
     "scripts": [
       "scripts/chromereload.js",
-	"scripts/background.js",
-	"scripts/constants.js"
+      "scripts/constants.js",
+      "scripts/background.js"
     ]
   },
   "browser_action": {
