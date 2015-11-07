@@ -24,7 +24,11 @@
     "default_title": "StopLeak",
     "default_popup": "popup.html"
   },
-  "options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true,
+    "open_in_tab": true
+  },
   "content_scripts": [
     {
       "matches": [
