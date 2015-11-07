@@ -30,6 +30,27 @@ class StopLeak(object):
 def main():
     global stopLeak
 
+    args = parse_args()
+
+    level = log_level_to_int(args.log_level)
+    init_logging(args.log_file, level)
+
+    stopLeak = StopLeak(args.db_name, args.host, args.port)
+    logging.info('Listening at: %s:%s', args.host, args.port)
+    try:
+        # Start the asyncio event loop which runs the websockets request handler
+        asyncio.get_event_loop().run_until_complete(stopLeak.server)
+        asyncio.get_event_loop().run_forever()
+    except KeyboardInterrupt:
+        # Close the db correctly
+        if stopLeak.db:
+            stopLeak.db.close()
+        # Close the websockets server too
+        if stopLeak.server:
+            stopLeak.server.close()
+
+
+def parse_args():
     argparser = argparse.ArgumentParser(description='StopLeak Server.')
     argparser.add_argument('-d', '--db', action='store', dest='db_name',
                            default=DEFAULT_DB_NAME,
@@ -54,21 +75,7 @@ def main():
                                 '(default: {})'.format(DEFAULT_PORT))
     argparser.add_argument('-v', '--version', action='version', version='StopLeak Server v0.1')
 
-    args = argparser.parse_args()
-
-    level = log_level_to_int(args.log_level)
-    init_logging(args.log_file, level)
-
-    stopLeak = StopLeak(args.db_name, args.host, args.port)
-    logging.info('Listening at: %s:%s', args.host, args.port)
-    try:
-        # Start the asyncio event loop which runs the websockets request handler
-        asyncio.get_event_loop().run_until_complete(stopLeak.server)
-        asyncio.get_event_loop().run_forever()
-    except KeyboardInterrupt:
-        # Close the db correctly
-        if stopLeak.db:
-            stopLeak.db.close()
+    return argparser.parse_args()
 
 
 def log_level_to_int(str_log_level):
