@@ -118,7 +118,7 @@ def handle_request(websocket, path):
     request = yield from websocket.recv()
     request_json = json.loads(request)
 
-    stopLeak.logger.debug("Incoming request: %s", request_json)
+    logging.debug("Incoming request: %s", request_json)
 
     # Extract the function name and arguments from the request
     function = request_json['function']
@@ -128,13 +128,13 @@ def handle_request(websocket, path):
         try:
             stopLeak.db.tally(**args)
         except Exception as e:
-            stopLeak.logger.warning("tally threw an exception", exc_info=True)
+            logging.warning("tally threw an exception", exc_info=True)
             
     elif function == "add_domain":
         try:
             stopLeak.db.add_domain(**args)
         except Exception as e:
-            stopLeak.logger.warning("add_domain threw an exception", exc_info=True)
+            logging.warning("add_domain threw an exception", exc_info=True)
     elif function == "get_counts":
         try:
             option_counts = stopLeak.db.get_counts(**args)
@@ -142,12 +142,12 @@ def handle_request(websocket, path):
                 'type': 'get_counts',
                 'value': option_counts
             }
-            stopLeak.logger.debug('SENDING: %s', result)
+            logging.debug('SENDING: %s', result)
             yield from websocket.send(json.dumps(result))
         except Exception as e:
-            stopLeak.logger.warning("get_counts threw an exception", exc_info=True)
+            logging.warning("get_counts threw an exception", exc_info=True)
     else:
-        stopLeak.logger.error("Unsupported request: {}".format(function))
+        logging.error("Unsupported request: {}".format(function))
 
 
 if __name__ == "__main__":
