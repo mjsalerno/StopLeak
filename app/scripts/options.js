@@ -1,7 +1,7 @@
 'use strict';
+/* global BLOCKED_STRINGS */
 
 console.log('\'Allo \'Allo! Option');
-var STORAGE_KEY = 'filter';
 
 function addStringToUI(str) {
     var table = document.getElementById('settings-tbl');
@@ -17,12 +17,12 @@ function addStringToUI(str) {
     btn.type = 'button';
     btn.onclick = function() { // Note this is a function
         chrome.storage.sync.get(null, function(items) {
-            var filters = items[STORAGE_KEY];
+            var filters = items[BLOCKED_STRINGS];
             var index = filters.indexOf(str);
             if (index > -1) {
                 filters.splice(index, 1);
                 var a  = {};
-                a[STORAGE_KEY]=filters;
+                a[BLOCKED_STRINGS]=filters;
                 chrome.storage.sync.set(a, function() {
                     var element = document.getElementById(str);
                     element.parentNode.removeChild(element);
@@ -37,10 +37,10 @@ function addStringToUI(str) {
 
 function refreshFilters() {
     chrome.storage.sync.get(null, function(items) {
-        if(!items[STORAGE_KEY]) {
+        if(!items[BLOCKED_STRINGS]) {
             return;
         }
-        var filters = items[STORAGE_KEY];
+        var filters = items[BLOCKED_STRINGS];
         document.getElementById('settings-tbl').innerHTML = '';
         console.log(filters);
         for (var i = 0; i < filters.length; i++) {
@@ -56,15 +56,15 @@ function addFilter() {
     }
     chrome.storage.sync.get(null, function(items) {
         var filters = [];
-        if (items[STORAGE_KEY]) {
-            filters = items[STORAGE_KEY];
+        if (items[BLOCKED_STRINGS]) {
+            filters = items[BLOCKED_STRINGS];
             if(filters.indexOf(newFilter) > -1) {
                 return;
             }
         }
         filters.push(newFilter);
         var a  = {};
-        a[STORAGE_KEY]=filters;
+        a[BLOCKED_STRINGS]=filters;
         chrome.storage.sync.set(a, function() {
             refreshFilters();
         });
@@ -80,6 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('add-filter-btn').onclick = addFilter;
     document.getElementById('clear-filter-btn').onclick = clearFilters;
     //var filters = ['john', 'smith', 'john smith'];
-    //chrome.storage.sync.set({STORAGE_KEY:filters});
+    //chrome.storage.sync.set({BLOCKED_STRINGS:filters});
     refreshFilters();
 });

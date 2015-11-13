@@ -37,7 +37,7 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= config.srcScript %>/{,*/}*.js'],
-        tasks: ['jshint', 'babel'],
+        tasks: ['jshint'],
         options: {
           livereload: '<%= connect.options.livereload %>'
         }
@@ -120,11 +120,6 @@ module.exports = function (grunt) {
         'test/spec/{,*/}*.js',
         'test/leakysite/{,*/}*.js'
       ]
-    },
-    pylint: {
-      all: {
-        src:'backend/{,*/}*.js'
-      },
     },
     mocha: {
       all: {
@@ -303,8 +298,6 @@ module.exports = function (grunt) {
       }
     }
   });
-
-  grunt.loadNpmTasks('grunt-pylint');
 
   grunt.registerTask('debug', function () {
     grunt.task.run([

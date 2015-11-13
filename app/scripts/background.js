@@ -1,12 +1,11 @@
 'use strict';
+/* global BLOCKED_STRINGS */
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  console.log('previousVersion', details.previousVersion);
+    console.log('previousVersion', details.previousVersion);
 });
 
 chrome.browserAction.setBadgeText({text: '0'});
-
-console.log('\'Allo \'Allo! Event Page for Browser Action');
 
 /**
  * StopLeak namespace.
@@ -15,31 +14,64 @@ console.log('\'Allo \'Allo! Event Page for Browser Action');
 var stopleak = stopleak || {};
 
 stopleak.blocks = {};
-stopleak.tabUrls = {};
+stopleak.tabDomain = {};
+stopleak.PIIData = [];
+
+
+/*
+ Assign user PII data (key is 'filter') to stopleak.PIIData
+ */
+
+/**
+ * Load user data from storage.
+ */
+function getUserData() {
+    chrome.storage.sync.get(BLOCKED_STRINGS, function (list) {
+        stopleak.PIIData = list.BLOCKED_STRINGS;
+    });
+}
+
+/**
+ * Update the user data that has changed.
+ * @param {Object} changes Object mapping each key that changed to its
+ *     corresponding storage.StorageChange for that item.
+ * @param {string} areaName The name of the storage area ("sync", "local" or
+ *     "managed") the changes are for.
+ */
+function updateUserData(changes, areaName) {
+    console.log('Syncing user data update from ' + areaName);
+    if (changes.hasOwnProperty(BLOCKED_STRINGS)) {
+        var change = changes[BLOCKED_STRINGS];
+        if (change.hasOwnProperty('newValue')) {
+            stopleak.PIIData = change.newValue;
+        }
+    }
+}
+
+getUserData();
+chrome.storage.onChanged.addListener(updateUserData);
 
 // Filter out request from the main frame (the
 stopleak.requestFilter = {
-  urls: ['<all_urls>'],
-  // Everything but 'main_frame'
-  types: [
-    'sub_frame',
-    'stylesheet',
-    'script',
-    'image',
-    'object',
-    'xmlhttprequest',
-    'other'
-  ]
+    urls: ['<all_urls>']
 };
+
+//function setUserData(object) {
+//    chrome.storage.sync.set({object});
+//}
+//
+//function removeUserData(object) {
+//    chrome.storage.sync.remove(object);
+//}
 
 /**
  * Return the domain name from a url.
  * @param {string} url Any url.
  */
 function getDomain(url) {
-  var host = new URL(url).hostname;
+    var host = new URL(url).hostname;
 
-  return host.split('.').slice(-2).join('.');
+    return host.split('.').slice(-2).join('.');
 }
 
 // Tab urls
@@ -49,11 +81,11 @@ function getDomain(url) {
  * @param {object} tab Details of the tab that was created.
  */
 function onCreated(tab) {
-  if (tab.hasOwnProperty('id') &&
-    tab.id !== chrome.tabs.TAB_ID_NONE &&
-    tab.hasOwnProperty('url')) {
-    stopleak.tabUrls[tab.id] = getDomain(tab.url);
-  }
+    if (tab.hasOwnProperty('id') &&
+        tab.id !== chrome.tabs.TAB_ID_NONE &&
+        tab.hasOwnProperty('url')) {
+        stopleak.tabDomain[tab.id] = getDomain(tab.url);
+    }
 }
 
 /**
@@ -63,9 +95,9 @@ function onCreated(tab) {
  *     was updated.
  */
 function onUpdated(tabId, changeInfo) {
-  if (changeInfo.hasOwnProperty('url')) {
-    stopleak.tabUrls[tabId] = getDomain(changeInfo.url);
-  }
+    if (changeInfo.hasOwnProperty('url')) {
+        stopleak.tabDomain[tabId] = getDomain(changeInfo.url);
+    }
 }
 
 /**
@@ -73,7 +105,7 @@ function onUpdated(tabId, changeInfo) {
  * @param {int} tabId Id of removed tab.
  */
 function onRemoved(tabId) {
-  delete stopleak.tabUrls[tabId];
+    delete stopleak.tabDomain[tabId];
 }
 
 /**
@@ -83,8 +115,8 @@ function onRemoved(tabId) {
  * @param {int} removedTabId Id of removed tab.
  */
 function onReplaced(addedTabId, removedTabId) {
-  stopleak.tabUrls[addedTabId] = stopleak.tabUrls[removedTabId];
-  delete stopleak.tabUrls[removedTabId];
+    stopleak.tabDomain[addedTabId] = stopleak.tabDomain[removedTabId];
+    delete stopleak.tabDomain[removedTabId];
 }
 
 /**
@@ -92,14 +124,15 @@ function onReplaced(addedTabId, removedTabId) {
  * @param {number} tabId The id of the tab.
  */
 function incBlockCount(tabId) {
-  if (stopleak.blocks[tabId] === undefined) {
-    stopleak.blocks[tabId] = 0;
-  }
-  stopleak.blocks[tabId] += 1;
-  chrome.browserAction.setBadgeText({
-    text: '' + stopleak.blocks[tabId],
-    tabId: tabId
-  });
+    if (stopleak.blocks[tabId] === undefined) {
+        stopleak.blocks[tabId] = 0;
+    }
+    stopleak.blocks[tabId] += 1;
+    // NOTE: setBadgeText may print an error saying no such tab.
+    chrome.browserAction.setBadgeText({
+        text: '' + stopleak.blocks[tabId],
+        tabId: tabId
+    });
 }
 
 /**
@@ -110,14 +143,15 @@ function incBlockCount(tabId) {
  *    headers to send.
  */
 function onBeforeSendHeaders(details, destDomain) {
-  // Delete third party cookies
-  for (var i = details.requestHeaders.length - 1; i >= 0; --i) {
-    if (details.requestHeaders[i].name === 'Cookie') {
-      details.requestHeaders.splice(i, 1);
+    // Delete third party cookies
+    for (var i = details.requestHeaders.length - 1; i >= 0; --i) {
+        if (details.requestHeaders[i].name === 'Cookie') {
+            details.requestHeaders.splice(i, 1);
+            console.log('Dropped cookie for ' + destDomain);
+            incBlockCount(details.tabId);
+        }
     }
-  }
-  console.log('Dropped cookie for ' + destDomain);
-  return {requestHeaders: details.requestHeaders};
+    return {requestHeaders: details.requestHeaders};
 }
 
 /**
@@ -128,16 +162,21 @@ function onBeforeSendHeaders(details, destDomain) {
  * @return {object} The BlockingResponse to allow or deny this request.
  */
 function onBeforeRequest(details, destDomain) {
-  var cancel = false;
+    var cancel = false;
 
-  //console.debug(details);
-  var str = JSON.stringify(details);
-  if (str.indexOf('shane') !== -1) {
-    console.debug('Blocking request to ' + destDomain);
-    incBlockCount(details.tabId);
-    cancel = true;
-  }
-  return {cancel: cancel};
+    //console.debug(details);
+    var str = JSON.stringify(details);
+
+    for (var blockString in stopleak.PIIData) {
+        if (str.indexOf(stopleak.PIIData[blockString]) !== -1) {
+            console.debug('Blocking request to ' + destDomain);
+            incBlockCount(details.tabId);
+            cancel = true;
+            break;
+        }
+    }
+
+    return {cancel: cancel};
 }
 
 /**
@@ -147,15 +186,16 @@ function onBeforeRequest(details, destDomain) {
  * @return {object} The BlockingResponse to allow or deny this request.
  */
 function filterCrossDomain(onBeforeCallback) {
-  return function (details) {
-    var destDomain = getDomain(details.url);
-    // Ignore requests going to the same domain.
-    if (details.tabId === chrome.tabs.TAB_ID_NONE ||
-      destDomain === stopleak.tabUrls[details.tabId]) {
-      return;
-    }
-    return onBeforeCallback(details, destDomain);
-  };
+    return function (details) {
+        var destDomain = getDomain(details.url);
+        // Ignore requests going to the same domain.
+        if (details.type === 'main_frame' ||
+            details.tabId === chrome.tabs.TAB_ID_NONE ||
+            destDomain === stopleak.tabDomain[details.tabId]) {
+            return;
+        }
+        return onBeforeCallback(details, destDomain);
+    };
 }
 
 // Tab urls
@@ -166,19 +206,19 @@ chrome.tabs.onReplaced.addListener(onReplaced);
 
 // Init tabs
 chrome.tabs.query({}, function (tabs) {
-  for (var i = 0; i < tabs.length; ++i) {
-    onCreated(tabs[i]);
-  }
+    for (var i = 0; i < tabs.length; ++i) {
+        onCreated(tabs[i]);
+    }
 });
 
 // Hook network requests
 chrome.webRequest.onBeforeSendHeaders.addListener(
-  filterCrossDomain(onBeforeSendHeaders),
-  stopleak.requestFilter,
-  ['blocking', 'requestHeaders']);
+    filterCrossDomain(onBeforeSendHeaders),
+    stopleak.requestFilter,
+    ['blocking', 'requestHeaders']);
 
 
 chrome.webRequest.onBeforeRequest.addListener(
-  filterCrossDomain(onBeforeRequest),
-  stopleak.requestFilter,
-  ['blocking', 'requestBody']);
+    filterCrossDomain(onBeforeRequest),
+    stopleak.requestFilter,
+    ['blocking', 'requestBody']);
