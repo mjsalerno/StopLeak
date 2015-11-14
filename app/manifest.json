@@ -12,6 +12,7 @@
     "scripts": [
       "scripts/chromereload.js",
       "scripts/constants.js",
+      "bower_components/jquery/dist/jquery.min.js",
       "scripts/background.js"
     ]
   },

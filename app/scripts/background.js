@@ -296,6 +296,9 @@ function filterCrossDomain(onBeforeCallback) {
             destDomain === stopleak.tabDomain[details.tabId]) {
             return;
         }
+        // console.log(details);
+        // alert('Check the stop leak dropdown');
+        // console.log('Do I work?');
         return onBeforeCallback(details, destDomain);
     };
 }
