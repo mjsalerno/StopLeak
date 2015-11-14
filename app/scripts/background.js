@@ -1,5 +1,45 @@
 'use strict';
-/* global BLOCKED_STRINGS */
+/* global BLOCKED_STRINGS,  ALLOW, DENY, USER_DENY, USER_ALLOW */
+
+
+var Tab = function(tabId){
+    this.tabId = tabId;
+    this.requestQueue = [];
+    this.userDecisionQueue = [];
+    this.phase = 1;
+};
+
+var userDecision = function (request, decision){
+    this.request = request;
+    this.decision = decision;
+};
+
+/*
+*Function that passes new decisions to user
+*@deny The stored user blacklist (i.e. stopleak.deny)
+*@allow The stored user whitelist (i.e. stopleak.allow)
+*/
+Tab.prototype.screenRequests = function(deny, allow){
+    for (var request in this.requestQueue){
+	//if not origin in the request then it's not a third party request and we don't care about it
+	if (!('Origin' in this.requestQueue[request])){
+	    continue;
+	}
+	//must be a third party request
+	for (var denyDomain in deny){
+	    //if a blocked domain composes a part of the request url then mark it denied
+	    if (this.requestQueue[request].url.indexOf(deny[denyDomain]) !== -1){
+		this.userDecisionQueue.push(new userDecision(this.requestQueue[request], USER_DENY));
+	    }
+	}
+	for (var allowDomain in allow){
+	    //if a blocked domain composes a part of the request url then mark it denied
+	    if (this.requestQueue[request].url.indexOf(allow[allowDomain]) !== -1){
+		this.userDecisionQueue.push(new userDecision(this.requestQueue[request], USER_ALLOW));
+	    }
+	}
+    }
+};
 
 chrome.runtime.onInstalled.addListener(function (details) {
     console.log('previousVersion', details.previousVersion);
@@ -16,6 +56,9 @@ var stopleak = stopleak || {};
 stopleak.blocks = {};
 stopleak.tabDomain = {};
 stopleak.PIIData = [];
+stopleak.deny = [];
+stopleak.allow = [];
+stopleak.tabQueue = [];
 
 
 /*
@@ -28,6 +71,8 @@ stopleak.PIIData = [];
 function getUserData() {
     chrome.storage.sync.get(BLOCKED_STRINGS, function (list) {
         stopleak.PIIData = list.BLOCKED_STRINGS;
+	stopleak.deny = list[DENY];
+	stopleak.allow = list[ALLOW];
     });
 }
 
@@ -98,6 +143,18 @@ function onUpdated(tabId, changeInfo) {
     if (changeInfo.hasOwnProperty('url')) {
         stopleak.tabDomain[tabId] = getDomain(changeInfo.url);
     }
+
+    if (changeInfo.status === 'complete')
+    {
+	for( var tab in stopleak.tabQueue)
+	{
+	    if (stopleak.tabQueue[tab].tabId === tabId)
+	    {
+		stopleak.tabQueue[tab].phase = 2;
+		stopleak.tabQueue[tab].screenRequests(stopleak.deny, stopleak.allow);
+	    }
+	}
+    }
 }
 
 /**
@@ -163,19 +220,64 @@ function onBeforeSendHeaders(details, destDomain) {
  */
 function onBeforeRequest(details, destDomain) {
     var cancel = false;
+    var found = 0;
 
-    //console.debug(details);
-    var str = JSON.stringify(details);
-
-    for (var blockString in stopleak.PIIData) {
-        if (str.indexOf(stopleak.PIIData[blockString]) !== -1) {
-            console.debug('Blocking request to ' + destDomain);
-            incBlockCount(details.tabId);
-            cancel = true;
-            break;
-        }
+    //XX
+    //Right now this adds every request to the queue
+    //Need to fix so that it only adds to request queue if contains blockstring?
+    //Or do that in screenRequests...
+    
+    for (var tab in stopleak.tabQueue)
+    {
+	if (stopleak.tabQueue[tab].tabId === details.tabId)
+	{
+	    stopleak.tabQueue[tab].requestQueue.push(details);
+	    found = 1;
+	    tab = stopleak.tabQueue[tab];
+	    break;
+	}
+    }
+    if(!found)
+    {
+	tab = new Tab(details.tabId);
+	tab.requestQueue.push(details);
+	stopleak.tabQueue.push(tab);
+    }
+    
+    if(tab.phase === 1)
+    {
+	return {cancel: true};
     }
 
+    
+    else if (tab.phase === 2)
+    {
+    
+	//console.debug(details);
+	var str = JSON.stringify(details);
+	
+	//XX
+	//Add: if not in whitelist
+	//We rely on the origin field in the header to know whether or not it is a third party request
+	//Origin is automatically added by browser.
+	//However "Origin" is not added if a GET request.
+	//So data could still be leaked through query params.
+	//The problem remains that we don't know the domain
+
+	//XX
+	//This has to be changed so that it just looks at the tabs request queue and the answers that the user
+	//Provided via the interface/whitelist/blacklist
+	for (var blockString in stopleak.PIIData)
+	{
+	    if (str.indexOf(stopleak.PIIData[blockString]) !== -1) {
+		console.debug('Blocking request to ' + destDomain);
+		incBlockCount(details.tabId);
+		cancel = true;
+		break;
+	    }
+	}
+    }
+    
     return {cancel: cancel};
 }
 
@@ -201,6 +303,7 @@ function filterCrossDomain(onBeforeCallback) {
 // Tab urls
 chrome.tabs.onCreated.addListener(onCreated);
 chrome.tabs.onUpdated.addListener(onUpdated);
+//chrome.tabs.onUpdated.addListener(onUpdatedFinishedLoading);
 chrome.tabs.onRemoved.addListener(onRemoved);
 chrome.tabs.onReplaced.addListener(onReplaced);
 
