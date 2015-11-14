@@ -166,7 +166,6 @@ function onBeforeRequest(details, destDomain) {
 
     //console.debug(details);
     var str = JSON.stringify(details);
-
     for (var blockString in stopleak.PIIData) {
         if (str.indexOf(stopleak.PIIData[blockString]) !== -1) {
             console.debug('Blocking request to ' + destDomain);
@@ -194,6 +193,9 @@ function filterCrossDomain(onBeforeCallback) {
             destDomain === stopleak.tabDomain[details.tabId]) {
             return;
         }
+        // console.log(details);
+        // alert('Check the stop leak dropdown');
+        // console.log('Do I work?');
         return onBeforeCallback(details, destDomain);
     };
 }
