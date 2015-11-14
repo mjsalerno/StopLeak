@@ -1,6 +1,13 @@
 'use strict';
 /* global BLOCKED_STRINGS */
 
+chrome.extension.onMessage.addListener(function(message,sender,sendResponse) {
+    if(message.text === 'getStuff') {
+        sendResponse({stuff:'test'}); //This would be where you send your stuff
+    }
+    console.log('Received a message');
+});
+
 chrome.runtime.onInstalled.addListener(function (details) {
     console.log('previousVersion', details.previousVersion);
 });
