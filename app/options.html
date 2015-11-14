@@ -10,9 +10,7 @@
     <!-- endbuild -->
   </head>
   <body>
-    <!--h1>'Allo, 'Allo!</h1-->
 
-    
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
@@ -25,14 +23,39 @@
     <!-- endbuild -->
     <script src="scripts/constants.js"></script>
     
-    New Filter:<br>
+    Filters:<br>
     <input type="text" id="new-filter">
     <button id="add-filter-btn">Add</button>
     <button id="clear-filter-btn">Clear</button><br>
-
-    <table id="settings-tbl">
+    <table id="filter-tbl">
     </table>
 
+    <hr>
+
+    Allow List:<br>
+    <input type="text" id="new-allow">
+    <button id="add-allow-btn">Add</button>
+    <button id="clear-allow-btn">Clear</button><br>
+    <table id="allow-tbl">
+    </table>
+
+    <hr>
+
+    Deny List:<br>
+    <input type="text" id="new-deny">
+    <button id="add-deny-btn">Add</button>
+    <button id="clear-deny-btn">Clear</button><br>
+    <table id="deny-tbl">
+    </table>
+
+    <hr>
+
+    Scrub List:<br>
+    <input type="text" id="new-scrub">
+    <button id="add-scrub-btn">Add</button>
+    <button id="clear-scrub-btn">Clear</button><br>
+    <table id="scrub-tbl">
+    </table>
 
   </body>
 </html>
