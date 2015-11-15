@@ -1,5 +1,5 @@
 'use strict';
-/* global BLOCKED_STRINGS */
+/* global BLOCKED_STRINGS, ALLOW, DENY, SCRUB*/
 
 function addStringToUI(str, idd, key) {
     var table = document.getElementById(idd);
@@ -91,13 +91,13 @@ document.addEventListener('DOMContentLoaded', function () {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
     };
     document.getElementById('add-allow-btn').onclick = function() {
-        addSetting('new-allow', 'allow-tbl', 'pizza');
+        addSetting('new-allow', 'allow-tbl', ALLOW);
     };
     document.getElementById('add-deny-btn').onclick = function() {
-        addSetting('new-deny', 'deny-tbl', 'hotdog');
+        addSetting('new-deny', 'deny-tbl', DENY);
     };
     document.getElementById('add-scrub-btn').onclick = function() {
-        addSetting('new-scrub', 'scrub-tbl', 'pie');
+        addSetting('new-scrub', 'scrub-tbl', SCRUB);
     };
 
     document.getElementById('clear-filter-btn').onclick = clearFilters;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //var filters = ['john', 'smith', 'john smith'];
     //chrome.storage.sync.set({BLOCKED_STRINGS:filters});
     refreshSetting('filter-tbl', BLOCKED_STRINGS);
-    refreshSetting('allow-tbl', 'pizza');
-    refreshSetting('deny-tbl', 'hotdog');
-    refreshSetting('scrub-tbl', 'pie');
+    refreshSetting('allow-tbl', ALLOW);
+    refreshSetting('deny-tbl', DENY);
+    refreshSetting('scrub-tbl', SCRUB);
 });
