@@ -1,5 +1,5 @@
 'use strict';
-/* global BLOCKED_STRINGS */
+/* global BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL*/
 
 function addStringToUI(str, idd, key) {
     var table = document.getElementById(idd);
@@ -86,28 +86,38 @@ function clearScrub() {
     document.getElementById('scrub-tbl').innerHTML = '';
 }
 
+function clearSWWL() {
+    chrome.storage.sync.clear();
+    document.getElementById('swwl-tbl').innerHTML = '';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('add-filter-btn').onclick = function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
     };
     document.getElementById('add-allow-btn').onclick = function() {
-        addSetting('new-allow', 'allow-tbl', 'pizza');
+        addSetting('new-allow', 'allow-tbl', ALLOW);
     };
     document.getElementById('add-deny-btn').onclick = function() {
-        addSetting('new-deny', 'deny-tbl', 'hotdog');
+        addSetting('new-deny', 'deny-tbl', DENY);
     };
     document.getElementById('add-scrub-btn').onclick = function() {
-        addSetting('new-scrub', 'scrub-tbl', 'pie');
+        addSetting('new-scrub', 'scrub-tbl', SCRUB);
+    };
+    document.getElementById('add-swwl-btn').onclick = function() {
+        addSetting('new-swwl', 'swwl-tbl', SWWL);
     };
 
     document.getElementById('clear-filter-btn').onclick = clearFilters;
     document.getElementById('clear-allow-btn').onclick = clearAllows;
     document.getElementById('clear-deny-btn').onclick = clearDeny;
     document.getElementById('clear-scrub-btn').onclick = clearScrub;
+    document.getElementById('clear-swwl-btn').onclick = clearSWWL;
     //var filters = ['john', 'smith', 'john smith'];
     //chrome.storage.sync.set({BLOCKED_STRINGS:filters});
     refreshSetting('filter-tbl', BLOCKED_STRINGS);
-    refreshSetting('allow-tbl', 'pizza');
-    refreshSetting('deny-tbl', 'hotdog');
-    refreshSetting('scrub-tbl', 'pie');
+    refreshSetting('allow-tbl', ALLOW);
+    refreshSetting('deny-tbl', DENY);
+    refreshSetting('scrub-tbl', SCRUB);
+    refreshSetting('swwl-tbl', SWWL);
 });
