@@ -90,6 +90,29 @@ Tab.prototype.screenRequests = function (deny, allow) {
     }
 };
 
+
+function blockRequest(request)
+{
+    var str = JSON.stringify(request);
+    if (requestGetHeader(request, 'Origin') !== null) {
+	for (var i = 0; i < stopleak.PIIData.length; ++i)
+	{
+            if (str.indexOf(stopleak.PIIData[i]) !== -1)
+	    {
+		return true;
+	    }
+	}
+    }
+
+    else
+    {	
+	return false;
+    }
+
+
+    
+}
+
 /**
  * Modifies or blocks HTTP requests based on the request headers.
  * @param {!Object} details The HTTP request containing request headers.
@@ -131,7 +154,7 @@ function onBeforeRequest(details, destDomain) {
     tab.requestQueue.push(details);
 
     //console.debug(details);
-    var str = JSON.stringify(details);
+    //var str = JSON.stringify(details);
 
     //XX
     //Add: if not in whitelist
@@ -144,6 +167,15 @@ function onBeforeRequest(details, destDomain) {
     //XX
     //This has to be changed so that it just looks at the tabs request queue and the answers that the user
     //Provided via the interface/whitelist/blacklist
+
+
+    if(blockRequest(details))
+    {
+	console.debug('Blocking request to ' + destDomain);
+	cancel = true;
+    }
+
+    /*
     for (var i = 0; i < stopleak.PIIData.length; ++i) {
         if (str.indexOf(stopleak.PIIData[i]) !== -1) {
             console.debug('Blocking request to ' + destDomain);
@@ -152,6 +184,8 @@ function onBeforeRequest(details, destDomain) {
             break;
         }
     }
+    */
+    
     return {cancel: cancel};
 }
 
