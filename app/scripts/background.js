@@ -1,7 +1,6 @@
 'use strict';
 /* global BLOCKED_STRINGS,  ALLOW, DENY, USER_DENY, USER_ALLOW */
 
-
 var Tab = function (tabId) {
     this.tabId = tabId;
     this.requestQueue = [];
@@ -90,7 +89,6 @@ chrome.browserAction.setBadgeText({text: '0'});
 var stopleak = stopleak || {};
 
 stopleak.blocks = {};
-stopleak.tabDomain = {};
 stopleak.PIIData = [];
 stopleak.deny = [];
 stopleak.allow = [];
@@ -145,67 +143,6 @@ stopleak.requestFilter = {
 //    chrome.storage.sync.remove(object);
 //}
 
-// Tab urls
-/**
- * Fired when a tab is created. Note that the tab's URL may not be set at the
- * time this event fired.
- * @param {object} tab Details of the tab that was created.
- */
-function onCreated(tab) {
-    if (tab.hasOwnProperty('id') &&
-        tab.id !== chrome.tabs.TAB_ID_NONE &&
-        tab.hasOwnProperty('url')) {
-        stopleak.tabDomain[tab.id] = getDomain(tab.url);
-    }
-}
-
-/**
- * Fired when a tab is updated.
- * @param {int} tabId Id of updated tab.
- * @param {object} changeInfo Lists the changes to the state of the tab that
- *     was updated.
- */
-function onUpdated(tabId, changeInfo) {
-    if (changeInfo.hasOwnProperty('url')) {
-        stopleak.tabDomain[tabId] = getDomain(changeInfo.url);
-    }
-}
-
-/**
- * Fired when a tab is closed.
- * @param {int} tabId Id of removed tab.
- */
-function onRemoved(tabId) {
-    delete stopleak.tabDomain[tabId];
-}
-
-/**
- * Fired when a tab is replaced with another tab due to prerendering or
- * instant.
- * @param {int} addedTabId Id of added tab.
- * @param {int} removedTabId Id of removed tab.
- */
-function onReplaced(addedTabId, removedTabId) {
-    stopleak.tabDomain[addedTabId] = stopleak.tabDomain[removedTabId];
-    delete stopleak.tabDomain[removedTabId];
-}
-
-/**
- * Increments the number of block requests on tab tabId.
- * @param {number} tabId The id of the tab.
- */
-function incBlockCount(tabId) {
-    if (stopleak.blocks[tabId] === undefined) {
-        stopleak.blocks[tabId] = 0;
-    }
-    stopleak.blocks[tabId] += 1;
-    // NOTE: setBadgeText may print an error saying no such tab.
-    chrome.browserAction.setBadgeText({
-        text: '' + stopleak.blocks[tabId],
-        tabId: tabId
-    });
-}
-
 /**
  * Modifies or blocks HTTP requests based on the request headers.
  * @param {!Object} details The HTTP request containing request headers.
@@ -219,7 +156,7 @@ function onBeforeSendHeaders(details, destDomain) {
         if (details.requestHeaders[i].name === 'Cookie') {
             details.requestHeaders.splice(i, 1);
             console.log('Dropped cookie for ' + destDomain);
-            incBlockCount(details.tabId);
+            stopleak.tabCache.incBlockCount(details.tabId);
         }
     }
     return {requestHeaders: details.requestHeaders};
@@ -263,7 +200,7 @@ function onBeforeRequest(details, destDomain) {
     for (var i = 0; i < stopleak.PIIData.length; ++i) {
         if (str.indexOf(stopleak.PIIData[i]) !== -1) {
             console.debug('Blocking request to ' + destDomain);
-            incBlockCount(details.tabId);
+            stopleak.tabCache.incBlockCount(details.tabId);
             cancel = true;
             break;
         }
@@ -283,7 +220,7 @@ function filterCrossDomain(onBeforeCallback) {
         // Ignore requests going to the same domain.
         if (details.type === 'main_frame' ||
             details.tabId === chrome.tabs.TAB_ID_NONE ||
-            destDomain === stopleak.tabDomain[details.tabId]) {
+            destDomain === stopleak.tabCache.domain(details.tabId, details.frameId)) {
             return;
         }
         // console.log(details);
@@ -292,19 +229,6 @@ function filterCrossDomain(onBeforeCallback) {
         return onBeforeCallback(details, destDomain);
     };
 }
-
-// Tab urls
-chrome.tabs.onCreated.addListener(onCreated);
-chrome.tabs.onUpdated.addListener(onUpdated);
-chrome.tabs.onRemoved.addListener(onRemoved);
-chrome.tabs.onReplaced.addListener(onReplaced);
-
-// Init tabs
-chrome.tabs.query({}, function (tabs) {
-    for (var i = 0; i < tabs.length; ++i) {
-        onCreated(tabs[i]);
-    }
-});
 
 // Hook network requests
 chrome.webRequest.onBeforeSendHeaders.addListener(

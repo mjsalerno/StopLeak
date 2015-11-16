@@ -7,13 +7,10 @@
 
 var stopleak = stopleak || {};
 
-stopleak.blocks = stopleak.blocks || {};
-stopleak.tabDomain = stopleak.tabDomain || {};
 stopleak.PIIData = stopleak.PIIData || [];
 stopleak.deny = stopleak.deny || [];
 stopleak.allow = stopleak.allow || [];
 stopleak.scrub = stopleak.scrub || [];
-stopleak.tabQueue = stopleak.tabQueue || [];
 
 /**
  * Load user data from storage.
