@@ -1,7 +1,7 @@
 /**
  * Created by michael on 11/15/15.
  */
-/* global BLOCKED_STRINGS,  ALLOW, DENY, SCRUB*/
+/* global BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS*/
 /*exported getReqAction*/
 'use strict';
 
@@ -13,6 +13,8 @@ stopleak.PIIData = stopleak.PIIData || [];
 stopleak.deny = stopleak.deny || [];
 stopleak.allow = stopleak.allow || [];
 stopleak.scrub = stopleak.scrub || [];
+stopleak.swwl = stopleak.swwl || [];
+stopleak.custSettings = stopleak.custSettings || [];
 stopleak.tabQueue = stopleak.tabQueue || [];
 
 const ACTION_ALLOW = 'allow';
@@ -29,6 +31,8 @@ function getUserData() {
         stopleak.deny = list[DENY];
         stopleak.allow = list[ALLOW];
         stopleak.scrub = list[SCRUB];
+        stopleak.swwl = list[SWWL];
+        stopleak.custSettings = list[CUSTOM_SETTINGS];
     });
 }
 
@@ -69,6 +73,20 @@ function updateUserData(changes, areaName) {
             stopleak.scrub = change.newValue;
         }
     }
+
+    if (changes.hasOwnProperty(SWWL)) {
+        change = changes[SWWL];
+        if (change.hasOwnProperty('newValue')) {
+            stopleak.swwl = change.newValue;
+        }
+    }
+
+    if (changes.hasOwnProperty(CUSTOM_SETTINGS)) {
+        change = changes[CUSTOM_SETTINGS];
+        if (change.hasOwnProperty('newValue')) {
+            stopleak.custSettings = change.custSettings;
+        }
+    }
 }
 
 /**
@@ -82,12 +100,37 @@ function getReqAction(src, dst) {
         return ACTION_ALLOW;
     }
 
+    var i, len;
+
+    //check tuple thing -> [{src:'source domain', dst: 'dst domain', action: ACTION_*}, ...]
+    len = stopleak.custSettings.length;
+    for(i = 0; i < len; i++) {
+        var map = stopleak.custSettings[i];
+        if(map.src === src && map.dst === dst) {
+            if(map.action !== ACTION_ALLOW || map.action !== ACTION_DENY ||
+                map.action !== ACTION_SCRUB) {
+
+                console.log('storage: invalid custom setting: ' + map);
+                return ACTION_UNKNOWN;
+            } else {
+                return map.action;
+            }
+        }
+    }
+
     //check deny list
-    var len = stopleak.deny.length;
-    var i;
+    len = stopleak.deny.length;
     for(i = 0; i < len; i++) {
         if(stopleak.deny[i] === dst) {
             return ACTION_DENY;
+        }
+    }
+
+    //check SWWL
+    len = stopleak.swwl.length;
+    for(i = 0; i < len; i++) {
+        if(stopleak.swwl[i] === src) {
+            return ACTION_ALLOW;
         }
     }
 
