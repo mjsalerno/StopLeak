@@ -1,5 +1,5 @@
 'use strict';
-/* global BLOCKED_STRINGS,  ALLOW, DENY, USER_DENY, USER_ALLOW */
+/* global USER_DENY, USER_ALLOW */
 
 var Tab = function (tabId) {
     this.tabId = tabId;
@@ -94,41 +94,6 @@ stopleak.deny = [];
 stopleak.allow = [];
 stopleak.tabs = {};
 
-
-/*
- Assign user PII data (key is 'filter') to stopleak.PIIData
- */
-
-/**
- * Load user data from storage.
- */
-function getUserData() {
-    chrome.storage.sync.get(BLOCKED_STRINGS, function (items) {
-        stopleak.PIIData = items[BLOCKED_STRINGS];
-        stopleak.deny = items[DENY];
-        stopleak.allow = items[ALLOW];
-    });
-}
-
-/**
- * Update the user data that has changed.
- * @param {Object} changes Object mapping each key that changed to its
- *     corresponding storage.StorageChange for that item.
- * @param {string} areaName The name of the storage area ("sync", "local" or
- *     "managed") the changes are for.
- */
-function updateUserData(changes, areaName) {
-    console.log('Syncing user data update from ' + areaName);
-    if (changes.hasOwnProperty(BLOCKED_STRINGS)) {
-        var change = changes[BLOCKED_STRINGS];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak.PIIData = change.newValue;
-        }
-    }
-}
-
-getUserData();
-chrome.storage.onChanged.addListener(updateUserData);
 
 // Filter out request from the main frame (the
 stopleak.requestFilter = {
