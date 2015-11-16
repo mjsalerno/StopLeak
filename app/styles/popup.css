@@ -1,0 +1,60 @@
+body {
+  font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+  font-size: 100%;
+  width: 500px;
+}
+
+#content {
+    text-align: center;
+}
+
+hr {
+    border: none;
+    border-top: 1px dashed black;
+}
+
+.fa-check {
+    color: green;
+}
+
+.fa-times {
+    color: red;
+}
+
+.fa-hand-paper-o {
+    color: orange;
+}
+
+.item {
+    font-size: x-large;
+    margin: auto;
+}
+
+.hostname {
+    width: 40%;
+}
+
+.hostname:hover {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
+
+.option:hover {
+    cursor: pointer;
+}
+
+.allow, .block, .scrub {
+    width: 20%;
+}
+
+.alexa, .wot {
+    width: 50%;
+    font-size: large;
+}
+
+.extra {
+    display: none;
+    visibility: hidden;
+    font-size: large
+}

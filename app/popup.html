@@ -1,100 +1,71 @@
 <!doctype html>
-<!--
- This page is shown when the extension button is clicked, because the
- "browser_action" field in manifest.json contains the "default_popup" key with
- value "popup.html".
--->
-
 <html>
-<!-- bower:js -->
-<script src="bower_components/jquery/dist/jquery.js"></script>
-<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-<!-- endbower -->
-<head>
-    <title>Getting Started Extension's Popup</title>
-    <style>
-      body {
-        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
-        font-size: 100%;
-    }
-    #status {
-        /* avoid an excessively wide status text */
-        white-space: pre;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        max-width: 400px;
-    }
-    .border {
-      border: 1px solid;
-      padding: 2px;
-      display: inline-block;
-      margin-left: auto;
-      margin-right: auto;
-  }
-
-  .container {
-      width: 250px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-  }
-
-  .container2 {
-    display: inline-block;
-    *display: inline; /* For IE7 */
-    zoom: 1; /* Trigger hasLayout */
-    width: 33%;
-    text-align: center;
-  }
-
-     table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 5px;
-        text-align: left;
-    }
-</style>
-
-    <!--
-      - JavaScript and HTML must be in separate files: see our Content Security
-      - Policy documentation[1] for details and explanation.
-      -
-      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
-  -->
-  <script src="scripts/popup.js"></script>
-</head>
+    <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <!-- endbower -->
+    <head>
+        <title>Getting Started Extension's Popup</title>
+        <link rel="stylesheet" type="text/css" href="styles/popup.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+        <script src="scripts/popup.js"></script>
+    </head>
     <body>
-        <div id='debugging'></div>
-        <div class='border container'>StopLeak Warning</div><br><br>
-        <div class='border container'><div>Your <u>something</u> is leaking<br>towards some_site</div></div><br><br>
+    <!--
+        <div id="debugging"></div>
+        <div class="border container">StopLeak Warning</div><br><br>
+        <div class="border container"><div>Your <u>something</u> is leaking<br>towards some_site</div></div><br><br>
 
 
         Details<br>
-        <div class='border container'>
+        <div class="border container">
             <table style="width:100%">
                 <tr>
                     <td width="50%">Alexa Rank:</td>
-                    <td id='alexa-result'></td>
+                    <td id="alexa-result"></td>
                 </tr>
                 <tr>
                     <td>WOT:</td>
-                    <td id='wot-result'></td>
+                    <td id="wot-result"></td>
                 </tr>
                 <tr>
                     <td>Visited before:</td>
-                    <td id='visited-result'>No</td>
+                    <td id="visited-result">No</td>
                 </tr>
             </table>
         </div>
 
-        <div class='container'>
-            <button type="button" id='block-button'>Block</button>&nbsp;&nbsp;
-            <button type="button" id='scrub-button'>Scrub</button>&nbsp;&nbsp;
-            <button type="button" id='allow-button'>Allow</button>
+        <div class="container">
+            <button type="button" id="block-button">Block</button>&nbsp;&nbsp;
+            <button type="button" id="scrub-button">Scrub</button>&nbsp;&nbsp;
+            <button type="button" id="allow-button">Allow</button>
         </div>
-
+    -->
+        <center class="header">
+            <h2>StopLeak</h2>
+            <img src="images/icon48.png" />
+        </center>
+        <hr/>
+        <div id="content">
+            <span class="item">
+                <div>
+                    <span class="hostname" title="Click for a more detailed analysis">adds.com <i class="fa fa-angle-right"></i></span>
+                    <span class="option allow" title="allow"><i class="fa fa-check"></i></span>
+                    <span class="option block" title="block"><i class="fa fa-times"></i></span>
+                    <span class="option scrub" title="scrub"><i class="fa fa-hand-paper-o"></i></span>
+                </div>
+                <div>
+                    <span class="alexa">Alexa: 1</span>
+                    <span class="wot">WOT: Very Good</span>
+                </div>
+                <div class="extra">
+                    Fancy extra info we want to display to the user.
+                </div>
+            </span>
+            <hr/>
+        </div>
+        <center class="footer">
+            Put Fancy footer stuff down here?
+        </center>
     </body>
 </html>
-

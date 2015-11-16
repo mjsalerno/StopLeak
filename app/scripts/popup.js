@@ -127,3 +127,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+
+/* Demo Code - Needs to be generated dynamically for each item */
+$(document).on('click', '.item .hostname', function() {
+    var extra = $('.item .extra');
+    if(extra.css('display') === 'none') {
+        extra.slideDown('slow');
+        extra.css('visibility', 'visible');
+        var arrow = $('.item .hostname .fa')
+        arrow.removeClass('fa-angle-right');
+        arrow.addClass('fa-angle-down')
+    } else {
+        extra.slideUp('slow');
+        var arrow = $('.item .hostname .fa')
+        arrow.removeClass('fa-angle-down');
+        arrow.addClass('fa-angle-right')
+    }
+});
+
+$(document).on('click', '.option', function() {
+    var content = $('#content');
+    content.fadeOut();
+});
