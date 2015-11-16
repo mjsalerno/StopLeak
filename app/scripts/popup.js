@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.extension.sendMessage({text:'getStuff'},function(reponse) {
         //This is where the stuff you want from the background page will be
         if(reponse.stuff === 'test') {
-            alert('Test received');
+            // alert('Test received');
         }
     });
 });
