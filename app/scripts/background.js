@@ -1,6 +1,19 @@
 'use strict';
 /* global USER_DENY, USER_ALLOW */
 
+/**
+ * StopLeak namespace.
+ * @namespace
+ */
+var stopleak = stopleak || {};
+
+stopleak.PIIData = [];
+stopleak.tabs = {};
+// Filter out request from the main frame (the
+stopleak.requestFilter = {
+    urls: ['<all_urls>']
+};
+
 var Tab = function (tabId) {
     this.tabId = tabId;
     this.requestQueue = [];
@@ -11,18 +24,6 @@ var userDecision = function (request, decision) {
     this.request = request;
     this.decision = decision;
 };
-
-
-/**
- * Return the domain name from a url.
- * @param {string} url Any url.
- */
-function getDomain(url) {
-    var host = new URL(url).hostname;
-
-    return host.split('.').slice(-2).join('.');
-}
-
 
 /**
  * Return the value of the headerName in the provided request.
@@ -58,7 +59,7 @@ Tab.prototype.screenRequests = function (deny, allow) {
             continue;
         }
 
-        var domain = getDomain(request.url);
+        var domain = stopleak.getDomain(request.url);
 
         //TODO(shane): if needed we could optimize with a binary search
         for (var j = 0; j < deny.length; ++j) {
@@ -75,38 +76,6 @@ Tab.prototype.screenRequests = function (deny, allow) {
         }
     }
 };
-
-chrome.runtime.onInstalled.addListener(function (details) {
-    console.log('previousVersion', details.previousVersion);
-});
-
-chrome.browserAction.setBadgeText({text: '0'});
-
-/**
- * StopLeak namespace.
- * @namespace
- */
-var stopleak = stopleak || {};
-
-stopleak.blocks = {};
-stopleak.PIIData = [];
-stopleak.deny = [];
-stopleak.allow = [];
-stopleak.tabs = {};
-
-
-// Filter out request from the main frame (the
-stopleak.requestFilter = {
-    urls: ['<all_urls>']
-};
-
-//function setUserData(object) {
-//    chrome.storage.sync.set({object});
-//}
-//
-//function removeUserData(object) {
-//    chrome.storage.sync.remove(object);
-//}
 
 /**
  * Modifies or blocks HTTP requests based on the request headers.
@@ -181,7 +150,7 @@ function onBeforeRequest(details, destDomain) {
  */
 function filterCrossDomain(onBeforeCallback) {
     return function (details) {
-        var destDomain = getDomain(details.url);
+        var destDomain = stopleak.getDomain(details.url);
         // Ignore requests going to the same domain.
         if (details.type === 'main_frame' ||
             details.tabId === chrome.tabs.TAB_ID_NONE ||
