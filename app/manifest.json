@@ -10,10 +10,11 @@
   "default_locale": "en",
   "background": {
     "scripts": [
+      "scripts/utils.js",
       "scripts/storage.js",
       "scripts/chromereload.js",
       "scripts/constants.js",
-      "bower_components/jquery/dist/jquery.min.js",
+      "scripts/tabs.js",
       "scripts/background.js"
     ]
   },
@@ -40,8 +41,7 @@
       "js": [
         "scripts/contentscript.js"
       ],
-      "run_at": "document_start",
-      "all_frames": true
+      "run_at": "document_start"
     }
   ],
   "permissions": [
@@ -49,6 +49,7 @@
     "http://*/*",
     "https://*/*",
     "webRequest",
+    "webNavigation",
     "webRequestBlocking",
     "storage"
   ]

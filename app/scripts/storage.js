@@ -7,15 +7,12 @@
 
 var stopleak = stopleak || {};
 
-stopleak.blocks = stopleak.blocks || {};
-stopleak.tabDomain = stopleak.tabDomain || {};
 stopleak.PIIData = stopleak.PIIData || [];
 stopleak.deny = stopleak.deny || [];
 stopleak.allow = stopleak.allow || [];
 stopleak.scrub = stopleak.scrub || [];
 stopleak.swwl = stopleak.swwl || [];
 stopleak.custSettings = stopleak.custSettings || [];
-stopleak.tabQueue = stopleak.tabQueue || [];
 
 const ACTION_ALLOW = 'allow';
 const ACTION_DENY = 'deny';

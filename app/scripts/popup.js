@@ -119,4 +119,11 @@ document.addEventListener('DOMContentLoaded', function () {
     getAlexaRank('google.com');
     getWOTRank('google.com');
     getActionCount();
+
+    chrome.extension.sendMessage({text:'getStuff'},function(reponse) {
+        //This is where the stuff you want from the background page will be
+        if(reponse.stuff === 'test') {
+            // alert('Test received');
+        }
+    });
 });
