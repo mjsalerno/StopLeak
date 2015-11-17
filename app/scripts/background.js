@@ -1,9 +1,9 @@
 'use strict';
 /* global USER_DENY, USER_ALLOW */
 
-chrome.extension.onMessage.addListener(function(message,sender,sendResponse) {
-    if(message.text === 'getStuff') {
-        sendResponse({stuff:'test'}); //This would be where you send your stuff
+chrome.extension.onMessage.addListener(function (message, sender, sendResponse) {
+    if (message.text === 'getStuff') {
+        sendResponse({stuff: 'test'}); //This would be where you send your stuff
     }
     console.log('Received a message');
 });
@@ -11,8 +11,6 @@ chrome.extension.onMessage.addListener(function(message,sender,sendResponse) {
 chrome.runtime.onInstalled.addListener(function (details) {
     console.log('previousVersion', details.previousVersion);
 });
-
-chrome.browserAction.setBadgeText({text: '0'});
 
 /**
  * StopLeak namespace.
@@ -40,19 +38,21 @@ var userDecision = function (request, decision) {
 
 /**
  * Return the value of the headerName in the provided request.
- * @param {object} request
+ * @param {array} requestHeaders Array of HTTPHeader objects
  * @param {string} headerName
  * @returns {any} Returns the value or binaryValue of the header in the
  *     request, or null if he request is not present
  */
-function requestGetHeader(request, headerName) {
-    for (var j = 0; j < request.requestHeaders.length; ++j) {
-        var header = request.requestHeaders[j];
-        if (header.name === headerName) {
-            if (header.hasOwnProperty('value')) {
-                return header.value;
-            } else if (header.hasOwnProperty('binaryValue')) {
-                return header.binaryValue;
+function requestGetHeader(requestHeaders, headerName) {
+    if(requestHeaders instanceof Array){
+        for (var j = 0; j < requestHeaders.length; ++j) {
+            var header = requestHeaders[j];
+            if (header.name === headerName) {
+                if (header.hasOwnProperty('value')) {
+                    return header.value;
+                } else if (header.hasOwnProperty('binaryValue')) {
+                    return header.binaryValue;
+                }
             }
         }
     }
@@ -68,7 +68,7 @@ Tab.prototype.screenRequests = function (deny, allow) {
     for (var i = 0; i < this.requestQueue.length; ++i) {
         var request = this.requestQueue[i];
         // Origin header is always present in third party requests
-        if (requestGetHeader(request, 'Origin') === null) {
+        if (requestGetHeader(request.requestHeaders, 'Origin') === null) {
             continue;
         }
 
@@ -91,26 +91,16 @@ Tab.prototype.screenRequests = function (deny, allow) {
 };
 
 
-function blockRequest(request)
-{
+function blockRequest(request) {
     var str = JSON.stringify(request);
-    if (requestGetHeader(request, 'Origin') !== null) {
-	for (var i = 0; i < stopleak.PIIData.length; ++i)
-	{
-            if (str.indexOf(stopleak.PIIData[i]) !== -1)
-	    {
-		return true;
-	    }
-	}
+    if (requestGetHeader(request.requestHeaders, 'Origin') !== null) {
+        for (var i = 0; i < stopleak.PIIData.length; ++i) {
+            if (str.indexOf(stopleak.PIIData[i]) !== -1) {
+                return true;
+            }
+        }
     }
-
-    else
-    {	
-	return false;
-    }
-
-
-    
+    return false;
 }
 
 /**
@@ -125,7 +115,8 @@ function onBeforeSendHeaders(details, destDomain) {
     for (var i = details.requestHeaders.length - 1; i >= 0; --i) {
         if (details.requestHeaders[i].name === 'Cookie') {
             details.requestHeaders.splice(i, 1);
-            console.log('Dropped cookie for ' + destDomain);
+            var source = stopleak.tabCache.domain(details.tabId, details.frameId);
+            console.log('Dropped cookie dest:' + destDomain + ', source:' + source + ' tab:' + details.tabId + ' frame:' + details.frameId);
             stopleak.tabCache.incBlockCount(details.tabId);
         }
     }
@@ -169,23 +160,22 @@ function onBeforeRequest(details, destDomain) {
     //Provided via the interface/whitelist/blacklist
 
 
-    if(blockRequest(details))
-    {
-	console.debug('Blocking request to ' + destDomain);
-	cancel = true;
+    if (blockRequest(details)) {
+        console.debug('Blocking request to ' + destDomain);
+        cancel = true;
     }
 
     /*
-    for (var i = 0; i < stopleak.PIIData.length; ++i) {
-        if (str.indexOf(stopleak.PIIData[i]) !== -1) {
-            console.debug('Blocking request to ' + destDomain);
-            stopleak.tabCache.incBlockCount(details.tabId);
-            cancel = true;
-            break;
-        }
-    }
-    */
-    
+     for (var i = 0; i < stopleak.PIIData.length; ++i) {
+     if (str.indexOf(stopleak.PIIData[i]) !== -1) {
+     console.debug('Blocking request to ' + destDomain);
+     stopleak.tabCache.incBlockCount(details.tabId);
+     cancel = true;
+     break;
+     }
+     }
+     */
+
     return {cancel: cancel};
 }
 
@@ -199,8 +189,12 @@ function filterCrossDomain(onBeforeCallback) {
     return function (details) {
         var destDomain = stopleak.getDomain(details.url);
         // Ignore requests going to the same domain.
-        if (details.type === 'main_frame' ||
-            details.tabId === chrome.tabs.TAB_ID_NONE ||
+        if (details.type === 'main_frame') {
+            return;
+        } else if (details.type === 'sub_frame') {
+            console.log('Allowing sub_frame: tabId:' + details.tabId + ' frameId:' + details.frameId + ' url:' + details.url);
+            return;
+        } else if (details.tabId === chrome.tabs.TAB_ID_NONE ||
             destDomain === stopleak.tabCache.domain(details.tabId, details.frameId)) {
             return;
         }
