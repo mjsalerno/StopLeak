@@ -5,14 +5,14 @@
 /*exported getReqAction*/
 'use strict';
 
-var stopleak = stopleak || {};
+var stopleak = {};
 
-stopleak.PIIData = stopleak.PIIData || [];
-stopleak.deny = stopleak.deny || [];
-stopleak.allow = stopleak.allow || [];
-stopleak.scrub = stopleak.scrub || [];
-stopleak.swwl = stopleak.swwl || [];
-stopleak.custSettings = stopleak.custSettings || [];
+stopleak.PIIData = [];
+stopleak.deny = [];
+stopleak.allow = [];
+stopleak.scrub = [];
+stopleak.swwl = [];
+stopleak.custSettings = {};
 
 const ACTION_ALLOW = 'allow';
 const ACTION_DENY = 'deny';
@@ -24,12 +24,12 @@ const ACTION_UNKNOWN = 'unknown';
  */
 function getUserData() {
     chrome.storage.sync.get(null, function (list) {
-        stopleak.PIIData = list[BLOCKED_STRINGS];
-        stopleak.deny = list[DENY];
-        stopleak.allow = list[ALLOW];
-        stopleak.scrub = list[SCRUB];
-        stopleak.swwl = list[SWWL];
-        stopleak.custSettings = list[CUSTOM_SETTINGS];
+        stopleak.PIIData = list.hasOwnProperty(BLOCKED_STRINGS) ?  list[BLOCKED_STRINGS] : [];
+        stopleak.deny = list.hasOwnProperty(DENY) ?  list[DENY] : [];
+        stopleak.allow = list.hasOwnProperty(ALLOW) ?  list[ALLOW] : [];
+        stopleak.scrub = list.hasOwnProperty(SCRUB) ?  list[SCRUB] : [];
+        stopleak.swwl = list.hasOwnProperty(SWWL) ?  list[SWWL] : [];
+        stopleak.custSettings = list.hasOwnProperty(CUSTOM_SETTINGS) ?  list[CUSTOM_SETTINGS] : {};
     });
 }
 
