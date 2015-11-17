@@ -11,9 +11,9 @@
   "background": {
     "scripts": [
       "scripts/utils.js",
+      "scripts/constants.js",
       "scripts/storage.js",
       "scripts/chromereload.js",
-      "scripts/constants.js",
       "scripts/tabs.js",
       "scripts/background.js"
     ]
