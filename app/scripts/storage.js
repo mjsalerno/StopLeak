@@ -23,7 +23,7 @@ const ACTION_UNKNOWN = 'unknown';
  * Load user data from storage.
  */
 function getUserData() {
-    chrome.storage.sync.get(null, function (list) {
+    chrome.storage.sync.get(null, function(list) {
         stopleak.PIIData = list.hasOwnProperty(BLOCKED_STRINGS) ?  list[BLOCKED_STRINGS] : [];
         stopleak.deny = list.hasOwnProperty(DENY) ?  list[DENY] : [];
         stopleak.allow = list.hasOwnProperty(ALLOW) ?  list[ALLOW] : [];
@@ -93,7 +93,7 @@ function updateUserData(changes, areaName) {
  * @param dst destination of request
  */
 function getReqAction(src, dst) {
-    if(src === dst) {
+    if (src === dst) {
         return ACTION_ALLOW;
     }
 
@@ -101,10 +101,10 @@ function getReqAction(src, dst) {
 
     //check tuple thing -> [{src:'source domain', dst: 'dst domain', action: ACTION_*}, ...]
     len = stopleak.custSettings.length;
-    for(i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         var map = stopleak.custSettings[i];
-        if(map.src === src && map.dst === dst) {
-            if(map.action !== ACTION_ALLOW || map.action !== ACTION_DENY ||
+        if (map.src === src && map.dst === dst) {
+            if (map.action !== ACTION_ALLOW || map.action !== ACTION_DENY ||
                 map.action !== ACTION_SCRUB) {
 
                 console.log('storage: invalid custom setting: ' + map);
@@ -117,39 +117,38 @@ function getReqAction(src, dst) {
 
     //check deny list
     len = stopleak.deny.length;
-    for(i = 0; i < len; i++) {
-        if(stopleak.deny[i] === dst) {
+    for (i = 0; i < len; i++) {
+        if (stopleak.deny[i] === dst) {
             return ACTION_DENY;
         }
     }
 
     //check SWWL
     len = stopleak.swwl.length;
-    for(i = 0; i < len; i++) {
-        if(stopleak.swwl[i] === src) {
+    for (i = 0; i < len; i++) {
+        if (stopleak.swwl[i] === src) {
             return ACTION_ALLOW;
         }
     }
 
     //check scrub list
     len = stopleak.scrub.length;
-    for(i = 0; i < len; i++) {
-        if(stopleak.scrub[i] === dst) {
+    for (i = 0; i < len; i++) {
+        if (stopleak.scrub[i] === dst) {
             return ACTION_SCRUB;
         }
     }
 
     //check allow list
     len = stopleak.allow.length;
-    for(i = 0; i < len; i++) {
-        if(stopleak.allow[i] === dst) {
+    for (i = 0; i < len; i++) {
+        if (stopleak.allow[i] === dst) {
             return ACTION_ALLOW;
         }
     }
 
     return ACTION_UNKNOWN;
 }
-
 
 getUserData();
 chrome.storage.onChanged.addListener(updateUserData);
