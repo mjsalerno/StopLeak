@@ -22,6 +22,15 @@
     <script src="scripts/options.js"></script>
     <!-- endbuild -->
     <script src="scripts/constants.js"></script>
+    <script src="scripts/storage.js"></script>
+
+    <style>
+        table.box, th.box, td.box {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+    </style>
     
     Filters:<br>
     <input type="text" id="new-filter">
@@ -65,6 +74,29 @@
     <button id="clear-swwl-btn">Clear</button><br>
     <table id="swwl-tbl">
     </table>
+
+    <hr>
+
+    Custom Settings:<br>
+    <table id="cs-tbl" class="box">
+        <tr class="box">
+            <th class="box">Source</th>
+            <th class="box">Destination</th>
+            <th class="box">Action</th>
+        </tr>
+    </table>
+
+    <table id="add-cs-tbl" class="box">
+        <tr>
+            <td class="box"><input type="text" id="new-cs-src"></td>
+            <td class="box"><input type="text" id="new-cs-dst"></td>
+            <td class="box">
+                <select id="select-action"></select>
+            </td>
+        </tr>
+    </table>
+    <button id="add-cs-btn">Add</button>
+    <button id="clear-cs-btn">Clear</button><br>
 
   </body>
 </html>

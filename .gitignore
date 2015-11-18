@@ -226,3 +226,5 @@ dist/
 
 package/
 *.db
+
+*.orig
