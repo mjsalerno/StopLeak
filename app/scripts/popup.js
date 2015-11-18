@@ -125,8 +125,10 @@ function getActionCount(payload) {
 
 function fade(e) {
     var element = $(e.target);
-    element.parent().parent().fadeOut(400, function() {
+    var parent = element.parent().parent().parent();
+    parent.fadeOut(400, function() {
         // Remove the item from the actual page.
+        parent.parent().remove(parent);
     });
 }
 
