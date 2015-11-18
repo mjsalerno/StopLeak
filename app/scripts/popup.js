@@ -298,32 +298,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-/* Demo Code - Needs to be generated dynamically for each item */
-/*
-$(document).on('click', '.item .hostname', function() {
-    var extra = $('.item .extra');
-    var arrow = $('.item .hostname .fa');
-    if (extra.css('display') === 'none') {
-        extra.slideDown('slow');
-        extra.css('visibility', 'visible');
-        arrow.removeClass('fa-angle-right');
-        arrow.addClass('fa-angle-down');
-    } else {
-        extra.slideUp('slow');
-        arrow.removeClass('fa-angle-down');
-        arrow.addClass('fa-angle-right');
-    }
-});
-
-$(document).on('click', '.option', function() {
-    var content = $('#content');
-    content.fadeOut(400, function() {
-        // Remove the item from the actual page.
-    });
-});
-*/
-
-/* Start everything */
-// getWOTRank('adds.com', $('.wot'));
-// getAlexaRank('adds.com', $('.alexa'));
