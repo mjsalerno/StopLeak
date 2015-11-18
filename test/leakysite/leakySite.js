@@ -9,8 +9,7 @@ function showResults(response) {
 function leakFailed(xhr) {
     if (xhr.responseText) {
         showResults(xhr.responseText);
-    }
-    else {
+    } else {
         showResults('Probably ERR_BLOCKED_BY_CLIENT (meaning StopLeak!)');
         console.log(xhr);
     }
