@@ -28,6 +28,7 @@ hr {
 .item {
     font-size: x-large;
     margin: auto;
+    display: block;
 }
 
 .hostname {
