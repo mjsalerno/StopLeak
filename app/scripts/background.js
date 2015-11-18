@@ -2,8 +2,31 @@
 /* global ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 
 chrome.extension.onMessage.addListener(function (message, sender, sendResponse) {
-    if (message.text === 'getStuff') {
-        sendResponse({stuff: 'test'}); //This would be where you send your stuff
+    if (message.method === 'request_queued_requests') {
+        // FIXME: Get this information from the tabs
+        sendResponse({
+            results: {
+                'adds.com': {
+                    'actions': {
+                        'block': 345, 'allow': 500, 'scrub': 357
+                    },
+                    // Store like extra PII content here?
+                    'extras': ['http://www.adds.com?user=cse509&location=USA', 'email=cse509@cs.stonybrook.edu']
+                },
+                'scottharvey.com': {
+                    'actions': {
+                        'block': 0, 'allow': 5000, 'scrub': 0
+                    },
+                    'extras': []
+                },
+                'stackoverflow.com': {
+                    'actions': {
+                        'block': 0, 'allow': 352, 'scrub': 5
+                    },
+                    'extras': ['username=cse509']
+                }
+            }
+        });
     }
     console.log('Received a message');
 });

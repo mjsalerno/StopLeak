@@ -8,7 +8,6 @@
         <title>Getting Started Extension's Popup</title>
         <link rel="stylesheet" type="text/css" href="styles/popup.css" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-        <script src="scripts/popup.js"></script>
     </head>
     <body>
     <!--
@@ -47,6 +46,7 @@
         </center>
         <hr/>
         <div id="content">
+            <!--
             <span class="item">
                 <div>
                     <span class="hostname" title="Click for a more detailed analysis">adds.com <i class="fa fa-angle-right"></i></span>
@@ -55,17 +55,21 @@
                     <span class="option scrub" title="scrub"><i class="fa fa-hand-paper-o"></i></span>
                 </div>
                 <div>
-                    <span class="alexa">Alexa: 1</span>
-                    <span class="wot">WOT: Very Good</span>
+                    <span class="alexa">Alexa: <img src="images/ajax-loader.gif" alt="fetching alexa results"/></span>
+                    <span class="wot">WOT: <img src="images/ajax-loader.gif" alt="fetching wot results"/></span>
                 </div>
                 <div class="extra">
                     Fancy extra info we want to display to the user.
                 </div>
             </span>
             <hr/>
+            -->
         </div>
         <center class="footer">
             Put Fancy footer stuff down here?
         </center>
+
+        <!-- Load javascript at te bottom of the page -->
+        <script src="scripts/popup.js"></script>
     </body>
 </html>
