@@ -67,12 +67,15 @@ function getAlexaRank(url, element) {
         success: function(data) {
             var $xml = $(data);
             // $('#debugging').text('Loaded Alexa');
-            element.html('Alexa: ' + $xml.find('SD').find('POPULARITY')
-                                         .attr('TEXT'));
+            var ranking = $xml.find('SD').find('POPULARITY').attr('TEXT');
+            if (ranking === undefined) {
+                element.html('Alexa: Not ranked');
+            } else {
+                element.html('Alexa: ' + ranking);
+            }
         },
         error: function() {
-            // $('#debugging').text('ERROR');
-            // $('#alexa-result').html('I BROKE!!!!');
+            // TODO: Special case for handling bad request?
         }
     });
 }
@@ -85,17 +88,15 @@ function getWOTRank(url, element) {
         dataType: 'json',
         success: function(data) {
             //put data back up in that function later
-            //var $xml = $(data);
-            // $('#debugging').text('Loaded WOT');
-            //$('#wot-result').html('SHITTY!!');
-            // FIXME: Need to handle bad response from WOT
-            var rank = data[url][0][0];
-            element.html(' WOT: ' + getWOTString(rank));
-            // $('#wot-result').html(getWOTString(rank));
+            if (data[url][0] === undefined) {
+                element.html(' WOT: None');
+            } else {
+                var rank = data[url][0][0];
+                element.html(' WOT: ' + getWOTString(rank));
+            }
         },
         error: function() {
-            // $('#debugging').text('ERROR');
-            // $('#wot-result').html('I BROKE!!!!');
+            // TODO: Special case for handling bad request?
         }
     });
 }
@@ -277,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Add default catchall for clicking an action
                 // FIXME: Make these buttons communicate with python server
+                // FIXME: or the background js page?
                 accept.click(fade);
                 block.click(fade);
                 scrub.click(fade);
