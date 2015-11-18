@@ -339,6 +339,7 @@ module.exports = function (grunt) {
   ]);
 
   grunt.registerTask('jenkins', [
+    'jscs',
     'jshint',
     'test',
     'clean:dist',
