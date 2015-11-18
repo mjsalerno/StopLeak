@@ -1,11 +1,10 @@
 /**
  * Created by michael on 11/15/15.
  */
-/* global BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS*/
-/*exported getReqAction*/
+/* global BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS */
 'use strict';
 
-var stopleak = {};
+var stopleak = stopleak || {};
 
 stopleak.PIIData = [];
 stopleak.deny = [];
@@ -92,7 +91,7 @@ function updateUserData(changes, areaName) {
  * @param src source of request
  * @param dst destination of request
  */
-function getReqAction(src, dst) {
+stopleak.getReqAction = function (src, dst) {
     if (src === dst) {
         return ACTION_ALLOW;
     }
@@ -148,7 +147,7 @@ function getReqAction(src, dst) {
     }
 
     return ACTION_UNKNOWN;
-}
+};
 
 getUserData();
 chrome.storage.onChanged.addListener(updateUserData);

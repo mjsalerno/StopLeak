@@ -7,6 +7,3 @@ const DENY = 'DENY';
 const SCRUB = 'SCRUB';
 const SWWL = 'SITE_WIDE_WHITE_LIST';
 const CUSTOM_SETTINGS = 'CUST_SETTINGS';
-
-const USER_DENY = 0;
-const USER_ALLOW = 1;

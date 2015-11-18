@@ -26,10 +26,12 @@ TabCache.prototype.getTab = function (tabId) {
  */
 TabCache.prototype.updateUrl = function (tabId, frameId, url) {
     var tab = this.getTab(tabId);
+    var domain = stopleak.getDomain(url);
     tab[frameId] = {
         url: url,
-        domain: stopleak.getDomain(url)
+        domain: domain
     };
+    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' domain: ' + domain);
 };
 
 /**
@@ -127,7 +129,7 @@ function initTabCache() {
 }
 
 // Init the tab cache
-stopleak.tabCache = stopleak.tabCache || new TabCache();
+stopleak.tabCache = new TabCache();
 initTabCache();
 
 
