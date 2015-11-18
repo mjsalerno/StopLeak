@@ -6,7 +6,9 @@ var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
 var DB_HOST = '127.0.0.1';
 var DB_PORT = '8765';
 
-/* Create the websocket and define the responses for handling messages received. */
+/* Create the websocket and define the responses for handling messages
+ * received.
+ */
 var wsConnection = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
 wsConnection.onmessage = function(event) {
     // console.log(event);
@@ -65,9 +67,10 @@ function getAlexaRank(url, element) {
         success: function(data) {
             var $xml = $(data);
             // $('#debugging').text('Loaded Alexa');
-            element.html('Alexa: ' + $xml.find('SD').find('POPULARITY').attr('TEXT'));
+            element.html('Alexa: ' + $xml.find('SD').find('POPULARITY')
+                                         .attr('TEXT'));
         },
-        error: function () {
+        error: function() {
             // $('#debugging').text('ERROR');
             // $('#alexa-result').html('I BROKE!!!!');
         }
@@ -90,7 +93,7 @@ function getWOTRank(url, element) {
             element.html(' WOT: ' + getWOTString(rank));
             // $('#wot-result').html(getWOTString(rank));
         },
-        error: function () {
+        error: function() {
             // $('#debugging').text('ERROR');
             // $('#wot-result').html('I BROKE!!!!');
         }
@@ -137,7 +140,7 @@ function showExtras(e) {
     if (element.parent().parent().find('.extra').length) {
         var extra = element.parent().parent().find('.extra');
         var arrow = element.find('.fa');
-        if(extra.css('display') === 'none') {
+        if (extra.css('display') === 'none') {
             extra.slideDown('slow');
             extra.css('visibility', 'visible');
             arrow.removeClass('fa-angle-right');
@@ -154,17 +157,18 @@ function showExtras(e) {
 
 document.addEventListener('DOMContentLoaded', function() {
     'use strict';
-    chrome.extension.sendMessage({method: 'request_queued_requests'}, function(response) {
+    chrome.extension.sendMessage({method: 'request_queued_requests'},
+    function(response) {
         // This is where the stuff you want from the background page will be
         // console.log(response);
-        if('results' in response) {
+        if ('results' in response) {
             // Begin iterating over the returned results
             var results = response.results;
-            for(var result in results) {
+            for (var result in results) {
                 // Extract actions
                 var hostname = result;
                 var actions = null;
-                if('actions' in results[result]) {
+                if ('actions' in results[result]) {
                     actions = results[result].actions;
                 } else {
                     console.log('Malformed response skipping.');
@@ -229,21 +233,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 alexa.addClass('alexa');
                 var wot = $('<span>');
                 wot.addClass('wot');
-                alexa.html('Alexa: <img src="images/ajax-loader.gif" alt="fetching alexa results" title="fetching alexa results" />');
-                wot.html(' WOT: <img src="images/ajax-loader.gif" alt="fetching wot results" title="fetching wot results" />');
-
+                // Create loading image elements
+                var loader = $('<img>', {
+                    src: 'images/ajax-loader.gif',
+                    alt: 'fetching alexa results',
+                    title: 'fetching alexa results'
+                });
+                // Add loader image to alexa
+                alexa.html('Alexa: ');
+                alexa.append(loader);
+                // Add loader image to wot
+                loader = $('<img>', {
+                    src: 'images/ajax-loader.gif',
+                    alt: 'fetching wot results',
+                    title: 'fetching wot results'
+                });
+                wot.html(' WOT: ');
+                wot.append(loader);
+                // Add both rankings to the ranks div
                 ranks.append(alexa);
                 ranks.append(wot);
                 // Populate extra content
-                if('extras' in results[result]) {
+                if ('extras' in results[result]) {
                     var exList = results[result].extras;
-                    if(exList.length > 0) {
+                    if (exList.length > 0) {
                         var arrow = $('<i>');
                         arrow.addClass('fa');
                         arrow.addClass('fa-angle-right');
                         host.append(arrow);
-                        host.prop('title', 'Click for a more detailed analysis');
-                        for(var extra in exList) {
+                        host.prop('title',
+                                  'Click for a more detailed analysis');
+                        for (var extra in exList) {
                             extras.append(exList[extra]);
                             extras.append('<br />');
                         }

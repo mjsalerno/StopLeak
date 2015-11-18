@@ -1,7 +1,7 @@
 'use strict';
 /* global ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 
-chrome.extension.onMessage.addListener(function (message, sender, sendResponse) {
+chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.method === 'request_queued_requests') {
         // FIXME: Get this information from the tabs
         sendResponse({
@@ -11,7 +11,8 @@ chrome.extension.onMessage.addListener(function (message, sender, sendResponse) 
                         'block': 345, 'allow': 500, 'scrub': 357
                     },
                     // Store like extra PII content here?
-                    'extras': ['http://www.adds.com?user=cse509&location=USA', 'email=cse509@cs.stonybrook.edu']
+                    'extras': ['http://www.adds.com?user=cse509&location=USA',
+                               'email=cse509@cs.stonybrook.edu']
                 },
                 'scottharvey.com': {
                     'actions': {
