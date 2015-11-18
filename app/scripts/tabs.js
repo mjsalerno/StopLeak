@@ -2,6 +2,11 @@
 
 var stopleak = stopleak || {};
 
+/**
+ * Stores info about the currently open tabs.
+ *
+ * @constructor
+ */
 var TabCache = function() {
     this.tabs = {}; // Maps tab id's to tabs
 };
@@ -28,13 +33,9 @@ TabCache.prototype.getTab = function(tabId) {
  */
 TabCache.prototype.updateUrl = function(tabId, frameId, url) {
     var tab = this.getTab(tabId);
-    var origin = stopleak.extractOrigin(url);
-    tab[frameId] = {
-        url: url,
-        origin: origin
-    };
-    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
-        origin);
+    tab[frameId] = new URL(url);
+    //console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
+    //    tab[frameId].origin);
 };
 
 /**

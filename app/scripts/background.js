@@ -66,11 +66,21 @@ function piiInRequestBody(request) {
     } else if (requestBody.hasOwnProperty('raw')) {
         // If the request method is PUT or POST, and the body is not already
         // parsed in formData, then the unparsed request body elements are
-        // contained in this array.
-        // raw is an array of UploadData
-        data = requestBody.raw;
+        // contained in this array. Each entry in the array is of UploadData
+        // type which has a 'bytes' or 'file' attribute.
+        data = {};
+        for (var i = 0; i < requestBody.raw.length; ++i) {
+            var uploadData = requestBody.raw[i];
+            if (uploadData.hasOwnProperty('bytes')) {
+                data.bytes = data.bytes || [];
+                data.bytes.push(stopleak.arrayToString(uploadData.bytes));
+            }
+            if (uploadData.hasOwnProperty('file')) {
+                data.file = data.file || [];
+                data.file.push(uploadData.file);
+            }
+        }
     }
-    console.log(data);
     return piiFound;
 }
 
@@ -100,7 +110,11 @@ function piiInRequestHeaders(request) {
             // JavaScript can add arbitrary headers to XMLHttpRequests using
             // the setRequestHeader() method.
             // w3.org/TR/XMLHttpRequest/#the-setrequestheader-method
-            return containsPIIdata(header.name) || containsPIIdata(headerValue);
+            piiFound = (containsPIIdata(header.name) ||
+                containsPIIdata(headerValue));
+        }
+        if (piiFound) {
+            break;
         }
     }
     return piiFound;
@@ -172,10 +186,12 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
             };
         case ACTION_DENY:
             // TODO: Should we block unconditionally or only if PII is present?
-            return {cancel: piiInRequest(request)};
+            stopleak.tabCache.incBlockCount(request.tabId);
+            return {cancel: true};
         case ACTION_UNKNOWN:
             if (piiInRequest(request)) {
                 // Block and notify user (tab).
+                stopleak.tabCache.incBlockCount(request.tabId);
                 return {cancel: true};
             } else {
                 // Allow request that have no PII data.
@@ -184,17 +200,6 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
             break;
         default:
             console.assert(false, 'Reached unreachable code!');
-    }
-
-    // Delete third party cookies (just an example)
-    for (var i = request.requestHeaders.length - 1; i >= 0; --i) {
-        if (request.requestHeaders[i].name === 'Cookie') {
-            request.requestHeaders.splice(i, 1);
-            console.log('Dropped cookie dest:' + destOrigin + ', source:' +
-                sourceOrigin + ' tab:' + request.tabId + ' frame:' +
-                request.frameId);
-            stopleak.tabCache.incBlockCount(request.tabId);
-        }
     }
     return {
         cancel: false,
