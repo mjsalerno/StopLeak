@@ -296,12 +296,24 @@ module.exports = function (grunt) {
           dest: ''
         }]
       }
-    }
+    },
+
+      jscs: {
+          src: '<%= config.srcScript %>/{,*/}*.js',
+          options: {
+              fix: false,
+              verbose: true,
+              config: '.jscsrc'
+          }
+      }
   });
+
+    grunt.loadNpmTasks('grunt-jscs');
 
   grunt.registerTask('debug', function () {
     grunt.task.run([
       'jshint',
+        'jscs',
       'concurrent:chrome',
       'connect:chrome',
       'watch'
@@ -342,6 +354,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('default', [
     'jshint',
+      'jscs',
     'test',
     'build'
   ]);

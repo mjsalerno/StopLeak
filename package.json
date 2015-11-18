@@ -23,7 +23,8 @@
     "grunt-usemin": "~3.1.1",
     "jit-grunt": "^0.9.1",
     "jshint-stylish": "~2.0.1",
-    "time-grunt": "~1.2.1"
+    "time-grunt": "~1.2.1",
+    "grunt-jscs": "~2.3.0"
   },
   "engines": {
     "node": ">=0.8.0"
