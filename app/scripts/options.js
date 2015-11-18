@@ -1,5 +1,5 @@
 'use strict';
-/* global BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL*/
+/* global BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB*/
 
 function addStringToUI(str, idd, key) {
     var table = document.getElementById(idd);
@@ -77,7 +77,7 @@ function refreshSetting(idd, key) {
 
 function refreshCustSettings() {
     chrome.storage.sync.get(null, function(items) {
-        if (!item[CUSTOM_SETTINGS]) {
+        if (!items[CUSTOM_SETTINGS]) {
             return;
         }
         var maps = items[CUSTOM_SETTINGS];
@@ -121,17 +121,18 @@ function addCustSetting() {
     }
     chrome.storage.sync.get(null, function(items) {
         var filters = [];
+        var custSett;
         if (items[CUSTOM_SETTINGS]) {
             custSett = items[CUSTOM_SETTINGS];
             if (custSett.indexOf(custSett) > -1) {
                 return;
             }
         }
-        filters.push(newFilter);
+        filters.push(custSett);
         var a  = {};
-        a[key] = filters;
+        a[CUSTOM_SETTINGS] = filters;
         chrome.storage.sync.set(a, function() {
-            refreshSetting(tblId, key);
+            refreshSetting('cs-tbl', CUSTOM_SETTINGS);
         });
     });
 }
