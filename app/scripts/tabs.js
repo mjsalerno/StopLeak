@@ -2,16 +2,17 @@
 
 var stopleak = stopleak || {};
 
-var TabCache = function () {
+var TabCache = function() {
     this.tabs = {}; // Maps tab id's to tabs
 };
 
 /**
  * Return Tab with the given tabId.
+ *
  * @param {number} tabId ID of the tab.
  * @return {object} tab
  */
-TabCache.prototype.getTab = function (tabId) {
+TabCache.prototype.getTab = function(tabId) {
     if (!this.tabs.hasOwnProperty(tabId)) {
         this.tabs[tabId] = {blocks: 0};
     }
@@ -20,27 +21,30 @@ TabCache.prototype.getTab = function (tabId) {
 
 /**
  * Updates the url for the provided frame.
+ *
  * @param {number} tabId ID of the tab.
  * @param {number} frameId ID of frame within this tab.
  * @param {string} url URL associated with the frame.
  */
-TabCache.prototype.updateUrl = function (tabId, frameId, url) {
+TabCache.prototype.updateUrl = function(tabId, frameId, url) {
     var tab = this.getTab(tabId);
     var origin = stopleak.extractOrigin(url);
     tab[frameId] = {
         url: url,
         origin: origin
     };
-    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' + origin);
+    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
+        origin);
 };
 
 /**
  * Get the origin for the provided frame within a tab.
+ *
  * @param {number} tabId ID of the tab.
  * @param {number} frameId ID of frame within this tab.
  * @return {string} origin of the frame
  */
-TabCache.prototype.getFrameOrigin = function (tabId, frameId) {
+TabCache.prototype.getFrameOrigin = function(tabId, frameId) {
     if (this.tabs.hasOwnProperty(tabId) &&
         this.tabs[tabId].hasOwnProperty(frameId)) {
         return this.tabs[tabId][frameId].origin;
@@ -50,18 +54,20 @@ TabCache.prototype.getFrameOrigin = function (tabId, frameId) {
 
 /**
  * Get the origin for the provided tab.
+ *
  * @param {number} tabId ID of the tab.
  * @return {string} origin of the tab
  */
-TabCache.prototype.getTabOrigin = function (tabId) {
+TabCache.prototype.getTabOrigin = function(tabId) {
     return this.getFrameOrigin(tabId, 0);
 };
 
 /**
  * Increments the number of block requests on tab tabId.
+ *
  * @param {number} tabId The id of the tab.
  */
-TabCache.prototype.incBlockCount = function (tabId) {
+TabCache.prototype.incBlockCount = function(tabId) {
     var tab = this.getTab(tabId);
     tab.blocks += 1;
     // NOTE: setBadgeText may print an error saying no such tab.
@@ -100,12 +106,14 @@ function onReferenceFragmentUpdated(details) {
  * @param {object} details Info about the replaced tab.
  */
 function onTabReplaced(details) {
-    stopleak.tabCache.tabs[details.tabId] = stopleak.tabCache.tabs[details.replacedTabId];
+    stopleak.tabCache.tabs[details.tabId] = stopleak.tabCache
+        .tabs[details.replacedTabId];
     delete stopleak.tabCache.tabs[details.replacedTabId];
 }
 
 /**
  * Fired when a tab is closed.
+ *
  * @param {int} tabId Id of removed tab.
  */
 function onRemoved(tabId) {
@@ -118,7 +126,7 @@ function onRemoved(tabId) {
  * @param {number} tabId ID of the tab.
  */
 function getAllFrames(tabId) {
-    chrome.webNavigation.getAllFrames({tabId: tabId}, function (detailsArray) {
+    chrome.webNavigation.getAllFrames({tabId: tabId}, function(detailsArray) {
         for (var i = 0; i < detailsArray.length; ++i) {
             var details = detailsArray[i];
             stopleak.tabCache.updateUrl(tabId, details.frameId, details.url);
@@ -130,7 +138,7 @@ function getAllFrames(tabId) {
  * Save all frames from all the current tabs.
  */
 function initTabCache() {
-    chrome.tabs.query({}, function (tabs) {
+    chrome.tabs.query({}, function(tabs) {
         for (var i = 0; i < tabs.length; ++i) {
             getAllFrames(tabs[i].id);
         }
@@ -141,8 +149,8 @@ function initTabCache() {
 stopleak.tabCache = new TabCache();
 initTabCache();
 
-
 chrome.tabs.onRemoved.addListener(onRemoved);
 chrome.webNavigation.onCommitted.addListener(onCommitted);
-chrome.webNavigation.onReferenceFragmentUpdated.addListener(onReferenceFragmentUpdated);
+chrome.webNavigation.onReferenceFragmentUpdated
+    .addListener(onReferenceFragmentUpdated);
 chrome.webNavigation.onTabReplaced.addListener(onTabReplaced);

@@ -12,10 +12,12 @@ wsConnection.onmessage = function(event) {
     // console.log(event);
     var message = JSON.parse(event.data);
     // console.log('Message:'  + message);
-    switch(message.type) {
+    switch (message.type) {
         case 'get_counts':
             var results = message.value;
-            var percentBlock = 0, percentScrub = 0, percentAllow = 0;
+            var percentBlock = 0;
+            var percentScrub = 0;
+            var percentAllow = 0;
             var total = results.block + results.scrub + results.allow;
             if (total !== 0) {
                 percentBlock = parseInt(results.block / total * 100);
@@ -23,9 +25,12 @@ wsConnection.onmessage = function(event) {
                 percentAllow = parseInt(results.allow / total * 100);
             }
 
-            $('#block-button').html('Block ' + results.block +' (' + percentBlock + '%)');
-            $('#scrub-button').html('Scrub ' + results.scrub +' (' + percentScrub + '%)');
-            $('#allow-button').html('Allow ' + results.allow +' (' + percentAllow + '%)');
+            $('#block-button').html('Block ' + results.block + ' (' +
+                percentBlock + '%)');
+            $('#scrub-button').html('Scrub ' + results.scrub + ' (' +
+                percentScrub + '%)');
+            $('#allow-button').html('Allow ' + results.allow + ' (' +
+                percentAllow + '%)');
             break;
         default:
             console.log('Unsupported event: ' + message.type + ' received.');
@@ -57,12 +62,13 @@ function getAlexaRank(url) {
     $.ajax({
         url: ALEXA_URL + url,
         dataType: 'xml',
-        success: function (data) {
+        success: function(data) {
             var $xml = $(data);
             $('#debugging').text('Loaded Alexa');
-            $('#alexa-result').html($xml.find('SD').find('POPULARITY').attr('TEXT'));
+            $('#alexa-result').html($xml.find('SD').find('POPULARITY')
+                .attr('TEXT'));
         },
-        error: function () {
+        error: function() {
             $('#debugging').text('ERROR');
             $('#alexa-result').html('I BROKE!!!!');
         }
@@ -75,7 +81,7 @@ function getWOTRank(url) {
         type: 'GET',
         url: WOT_URL + url + '/&key=' + WOT_KEY,
         dataType: 'json',
-        success: function (data) {
+        success: function(data) {
             //put data back up in that function later
             //var $xml = $(data);
             $('#debugging').text('Loaded WOT');
@@ -83,7 +89,7 @@ function getWOTRank(url) {
             var rank = data[url][0][0];
             $('#wot-result').html(getWOTString(rank));
         },
-        error: function () {
+        error: function() {
             $('#debugging').text('ERROR');
             $('#wot-result').html('I BROKE!!!!');
         }
@@ -114,26 +120,25 @@ function getActionCount(payload) {
     };
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     'use strict';
     getAlexaRank('google.com');
     getWOTRank('google.com');
     getActionCount();
 
-    chrome.extension.sendMessage({text:'getStuff'},function(reponse) {
+    chrome.extension.sendMessage({text: 'getStuff'},function(reponse) {
         //This is where the stuff you want from the background page will be
-        if(reponse.stuff === 'test') {
+        if (reponse.stuff === 'test') {
             // alert('Test received');
         }
     });
 });
 
-
 /* Demo Code - Needs to be generated dynamically for each item */
 $(document).on('click', '.item .hostname', function() {
     var extra = $('.item .extra');
     var arrow = $('.item .hostname .fa');
-    if(extra.css('display') === 'none') {
+    if (extra.css('display') === 'none') {
         extra.slideDown('slow');
         extra.css('visibility', 'visible');
         arrow.removeClass('fa-angle-right');

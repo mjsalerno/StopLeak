@@ -1,14 +1,14 @@
 'use strict';
 /* global ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 
-chrome.extension.onMessage.addListener(function (message, sender, sendResponse) {
+chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.text === 'getStuff') {
         sendResponse({stuff: 'test'}); //This would be where you send your stuff
     }
     console.log('Received a message');
 });
 
-chrome.runtime.onInstalled.addListener(function (details) {
+chrome.runtime.onInstalled.addListener(function(details) {
     console.log('previousVersion', details.previousVersion);
 });
 
@@ -28,6 +28,7 @@ stopleak.requestFilter = {
 
 /**
  * Checks whether this string contains any PII data.
+ *
  * @param {string} str The string to screen for PII.
  * @returns {boolean} True if the string contains PII data.
  */
@@ -42,11 +43,12 @@ function containsPIIdata(str) {
 
 /**
  * Checks whether this request body contains any PII data.
+ *
  * @param {object} request The request to check.
  * @returns {boolean} True if the body contains PII data.
  */
 function piiInRequestBody(request) {
-    if(!request.hasOwnProperty('requestBody')) {
+    if (!request.hasOwnProperty('requestBody')) {
         return false;
     }
     var piiFound = false;
@@ -74,6 +76,7 @@ function piiInRequestBody(request) {
 
 /**
  * Checks whether this request's HTTP headers contain any PII data.
+ *
  * @param {object} request The request to check.
  * @returns {boolean} True if the headers contain PII data.
  */
@@ -105,6 +108,7 @@ function piiInRequestHeaders(request) {
 
 /**
  * Checks whether this request contains any PII data.
+ *
  * @param {object} request The request to check.
  * @returns {boolean} True if the headers contain PII data.
  */
@@ -114,6 +118,7 @@ function piiInRequest(request) {
 
 /**
  * Returns the full request details (onBeforeRequest and onBeforeSendHeaders).
+ *
  * @param {object} request
  * @returns {object} Union of requests from onBeforeRequest and
  *     onBeforeSendHeaders
@@ -127,6 +132,7 @@ function fullRequest(request) {
 
 /**
  * Save the request details for onBeforeSendHeaders to use later on.
+ *
  * @param {!Object} details The HTTP request before being sent.
  * @return {object} The BlockingResponse to allow or deny this request.
  */
@@ -138,6 +144,7 @@ function onBeforeRequest(details) {
 /**
  * Modifies or blocks HTTP requests based possible PII content and the user's
  * preferences.
+ *
  * @param {!Object} details The HTTP request containing request headers.
  * @param {string} sourceOrigin The source origin.
  * @param {string} destOrigin The destination origin.
@@ -197,12 +204,13 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
 
 /**
  * Pass cross origin requests to the filter callback.
+ *
  * @param {function} onBeforeCallback Either onBeforeSendHeaders or
  *    onBeforeRequest.
  * @return {object} The BlockingResponse to allow or deny this request.
  */
 function filterCrossTabOrigin(onBeforeCallback) {
-    return function (details) {
+    return function(details) {
         var allow = {cancel: false};
         // Allow requests without tabs or for top-level documents.
         if (details.tabId === chrome.tabs.TAB_ID_NONE ||

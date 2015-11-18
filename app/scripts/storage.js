@@ -23,17 +23,25 @@ const ACTION_UNKNOWN = 'unknown';
  */
 function getUserData() {
     chrome.storage.sync.get(null, function(list) {
-        stopleak.PIIData = list.hasOwnProperty(BLOCKED_STRINGS) ?  list[BLOCKED_STRINGS] : [];
+        stopleak.PIIData = list.hasOwnProperty(BLOCKED_STRINGS) ?
+            list[BLOCKED_STRINGS] : [];
+
         stopleak.deny = list.hasOwnProperty(DENY) ?  list[DENY] : [];
+
         stopleak.allow = list.hasOwnProperty(ALLOW) ?  list[ALLOW] : [];
+
         stopleak.scrub = list.hasOwnProperty(SCRUB) ?  list[SCRUB] : [];
+
         stopleak.swwl = list.hasOwnProperty(SWWL) ?  list[SWWL] : [];
-        stopleak.custSettings = list.hasOwnProperty(CUSTOM_SETTINGS) ?  list[CUSTOM_SETTINGS] : {};
+
+        stopleak.custSettings = list.hasOwnProperty(CUSTOM_SETTINGS) ?
+            list[CUSTOM_SETTINGS] : {};
     });
 }
 
 /**
  * Update the user data that has changed.
+ *
  * @param {Object} changes Object mapping each key that changed to its
  *     corresponding storage.StorageChange for that item.
  * @param {string} areaName The name of the storage area ("sync", "local" or
@@ -88,15 +96,17 @@ function updateUserData(changes, areaName) {
 /**
  * Returns ACTION_ALLOW, ACTION_DENY, or ACTION_SCRUB
  * if a request is allowed, null if unknown
- * @param src source of request
- * @param dst destination of request
+ *
+ * @param {String} src source of request
+ * @param {String} dst destination of request
  */
-stopleak.getReqAction = function (src, dst) {
+stopleak.getReqAction = function(src, dst) {
     if (src === dst) {
         return ACTION_ALLOW;
     }
 
-    var i, len;
+    var i;
+    var len;
 
     //check tuple thing -> [{src:'source origin', dst: 'dst origin', action: ACTION_*}, ...]
     len = stopleak.custSettings.length;
