@@ -98,7 +98,7 @@ function getActionCount(payload) {
         // FIXME: This tabs URL should be replaced with the leaky url
         // FIXME: That the site is trying to leak to.
         chrome.tabs.getSelected(null, function(tab) {
-            // Extract the domain, preserving any subdomains
+            // Extract the origin, preserving any subdomains
             // FIXME: subdomains should be treated the same as their main domains
             var result = tab.url.match(/(?:https?:\/\/)?(?:www\.)?(.*?)\//);
             var domain = result[result.length - 1];

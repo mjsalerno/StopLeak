@@ -26,26 +26,35 @@ TabCache.prototype.getTab = function (tabId) {
  */
 TabCache.prototype.updateUrl = function (tabId, frameId, url) {
     var tab = this.getTab(tabId);
-    var domain = stopleak.getDomain(url);
+    var origin = stopleak.extractOrigin(url);
     tab[frameId] = {
         url: url,
-        domain: domain
+        origin: origin
     };
-    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' domain: ' + domain);
+    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' + origin);
 };
 
 /**
- * Get the domain for the provided frame.
+ * Get the origin for the provided frame within a tab.
  * @param {number} tabId ID of the tab.
  * @param {number} frameId ID of frame within this tab.
- * @return {string} domain of the frame
+ * @return {string} origin of the frame
  */
-TabCache.prototype.domain = function (tabId, frameId) {
+TabCache.prototype.getFrameOrigin = function (tabId, frameId) {
     if (this.tabs.hasOwnProperty(tabId) &&
         this.tabs[tabId].hasOwnProperty(frameId)) {
-        return this.tabs[tabId][frameId].domain;
+        return this.tabs[tabId][frameId].origin;
     }
     return '';
+};
+
+/**
+ * Get the origin for the provided tab.
+ * @param {number} tabId ID of the tab.
+ * @return {string} origin of the tab
+ */
+TabCache.prototype.getTabOrigin = function (tabId) {
+    return this.getFrameOrigin(tabId, 0);
 };
 
 /**

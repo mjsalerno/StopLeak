@@ -98,7 +98,7 @@ stopleak.getReqAction = function (src, dst) {
 
     var i, len;
 
-    //check tuple thing -> [{src:'source domain', dst: 'dst domain', action: ACTION_*}, ...]
+    //check tuple thing -> [{src:'source origin', dst: 'dst origin', action: ACTION_*}, ...]
     len = stopleak.custSettings.length;
     for(i = 0; i < len; i++) {
         var map = stopleak.custSettings[i];
