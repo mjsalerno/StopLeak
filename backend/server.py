@@ -48,6 +48,9 @@ def main():
         # Close the websockets server too
         if stopLeak.server:
             stopLeak.server.close()
+        # Cancel all tasks
+        for task in asyncio.Task.all_tasks():
+            task.cancel()
 
 
 def parse_args():
@@ -116,6 +119,10 @@ def handle_request(websocket, path):
     global stopLeak
 
     request = yield from websocket.recv()
+    if not request:
+        websocket.close()
+        return
+
     request_json = json.loads(request)
 
     logging.debug("Incoming request: %s", request_json)
