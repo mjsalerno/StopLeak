@@ -82,10 +82,11 @@ function refreshCustSettings() {
         }
         var maps = items[CUSTOM_SETTINGS];
         document.getElementById('cs-tbl').innerHTML = '';
-        for (var i = 0; i < maps.length; i++) {
-            //addStringToUI(filters[i], idd, key);
-            var map = maps[i];
-            addStringToCS(map.src, map.dst, map.action);
+        for (var i in maps) {
+            for (var j in maps[i]) {
+                //addStringToUI(filters[i], idd, key);
+                addStringToCS(i, j, maps[i][j]);
+            }
         }
     });
 }
@@ -120,19 +121,15 @@ function addCustSetting() {
         return;
     }
     chrome.storage.sync.get(null, function(items) {
-        var filters = [];
-        var custSett;
-        if (items[CUSTOM_SETTINGS]) {
-            custSett = items[CUSTOM_SETTINGS];
-            if (custSett.indexOf(custSett) > -1) {
-                return;
-            }
-        }
-        filters.push(custSett);
-        var a  = {};
-        a[CUSTOM_SETTINGS] = filters;
-        chrome.storage.sync.set(a, function() {
-            refreshSetting('cs-tbl', CUSTOM_SETTINGS);
+
+        var custSett = items[CUSTOM_SETTINGS] || {};
+        var inCustSett = custSett[src] || {};
+        inCustSett[dst] = action;
+        custSett[src] = inCustSett;
+        items[CUSTOM_SETTINGS] = custSett;
+
+        chrome.storage.sync.set(items, function() {
+            refreshCustSettings();
         });
     });
 }
@@ -179,8 +176,8 @@ function clearSWWL() {
 }
 
 function clearCustSettings() {
-    chrome.storage.sync.remove(SWWL);
-    document.getElementById('swwl-tbl').innerHTML = '';
+    chrome.storage.sync.remove(CUSTOM_SETTINGS);
+    document.getElementById('cs-tbl').innerHTML = '';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
