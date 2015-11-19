@@ -3,8 +3,8 @@
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
-var DB_HOST = '127.0.0.1';
-var DB_PORT = '8765';
+// var DB_HOST = '127.0.0.1';
+// var DB_PORT = '8765';
 
 /* Create the websocket and define the responses for handling messages
  * received.
@@ -42,7 +42,6 @@ wsConnection.onmessage = function(event) {
     }
 };
 */
-
 
 function getWOTString(rank) {
     'use strict';
@@ -144,7 +143,7 @@ function fade(e) {
     // Inform background of our decesion
     chrome.extension.sendMessage({method: 'option_selected',
                                   option: option,
-                                  hostname: hostname });
+                                  hostname: hostname});
 }
 
 function showExtras(e) {

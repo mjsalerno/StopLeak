@@ -28,7 +28,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             }
         });
-    } else if(message.method === 'option_selected') {
+    } else if (message.method === 'option_selected') {
         console.log('User decided to ' + message.option + ' for ' +
                     message.hostname);
     }
