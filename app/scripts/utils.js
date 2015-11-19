@@ -47,6 +47,41 @@ stopleak.requestGetHeader = function(requestHeaders, headerName) {
 };
 
 /**
+ * Return the value of the requestBody in the provided request.
+ *
+ * @param {object} request Request
+ * @returns {object} maps keys to array of values. An example value
+ *    of this dictionary is {'key': ['value1', 'value2']}.
+ */
+stopleak.getRequestBody = function(request) {
+    if (!request.hasOwnProperty('requestBody')) {
+        return {};
+    }
+    var requestBody = request.requestBody;
+    var body = {};
+    if (requestBody.hasOwnProperty('formData')) {
+        body = requestBody.formData;
+    } else if (requestBody.hasOwnProperty('raw')) {
+        // If the request method is PUT or POST, and the body is not already
+        // parsed in formData, then the unparsed request body elements are
+        // contained in this array. Each entry in the array is of UploadData
+        // type which has a 'bytes' or 'file' attribute.
+        for (var i = 0; i < requestBody.raw.length; ++i) {
+            var uploadData = requestBody.raw[i];
+            if (uploadData.hasOwnProperty('bytes')) {
+                body.bytes = body.bytes || [];
+                body.bytes.push(stopleak.arrayToString(uploadData.bytes));
+            }
+            if (uploadData.hasOwnProperty('file')) {
+                body.file = body.file || [];
+                body.file.push(uploadData.file);
+            }
+        }
+    }
+    return body;
+};
+
+/**
  * Returns a string encoding of the ArrayBuffer
  *
  * @param {ArrayBuffer} buf ArrayBuffer
