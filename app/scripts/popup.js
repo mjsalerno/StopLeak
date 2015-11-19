@@ -173,9 +173,9 @@ function calculateStats(actions) {
     var allowPercent = 0;
     // Compute statistics
     if (total !== 0) {
-        blockPercent = parseInt((actions.block / total) * 100);
-        scrubPercent = parseInt((actions.scrub / total) * 100);
-        allowPercent = parseInt((actions.allow / total) * 100);
+        blockPercent = ((actions.block / total) * 100).toFixed(1);
+        scrubPercent = ((actions.scrub / total) * 100).toFixed(1);
+        allowPercent = ((actions.allow / total) * 100).toFixed(1);
     }
 
     return {
