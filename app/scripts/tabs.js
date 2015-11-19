@@ -43,14 +43,24 @@ TabCache.prototype.updateUrl = function(tabId, frameId, url) {
  *
  * @param {number} tabId ID of the tab.
  * @param {number} frameId ID of frame within this tab.
- * @return {string} origin of the frame
+ * @return {URL} url of the frame
  */
-TabCache.prototype.getFrameOrigin = function(tabId, frameId) {
+TabCache.prototype.getFrameURL = function(tabId, frameId) {
     if (this.tabs.hasOwnProperty(tabId) &&
         this.tabs[tabId].hasOwnProperty(frameId)) {
-        return this.tabs[tabId][frameId].origin;
+        return this.tabs[tabId][frameId];
     }
-    return '';
+    return new URL('');
+};
+
+/**
+ * Get the URL for the provided tab.
+ *
+ * @param {number} tabId ID of the tab.
+ * @return {URL} URL of the tab
+ */
+TabCache.prototype.getTabURL = function(tabId) {
+    return this.getFrameURL(tabId, 0);
 };
 
 /**
@@ -60,7 +70,7 @@ TabCache.prototype.getFrameOrigin = function(tabId, frameId) {
  * @return {string} origin of the tab
  */
 TabCache.prototype.getTabOrigin = function(tabId) {
-    return this.getFrameOrigin(tabId, 0);
+    return this.getFrameURL(tabId, 0).origin;
 };
 
 /**
