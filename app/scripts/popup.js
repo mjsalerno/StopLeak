@@ -9,9 +9,11 @@ var DB_PORT = '8765';
 /* Create the websocket and define the responses for handling messages
  * received.
  */
-var wsConnection = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
+// var wsConnection = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
+
+/*
 wsConnection.onmessage = function(event) {
-    // console.log(event);
+    console.log(event);
     var message = JSON.parse(event.data);
     // console.log('Message:'  + message);
     switch (message.type) {
@@ -39,6 +41,8 @@ wsConnection.onmessage = function(event) {
             break;
     }
 };
+*/
+
 
 function getWOTString(rank) {
     'use strict';
@@ -134,6 +138,13 @@ function fade(e) {
         // Remove the item from the actual page.
         parent.parent().remove(parent);
     });
+    // Get the type of option selected
+    var option = element.parent().attr('title');
+    var hostname = parent.find('.hostname').data('hostname');
+    // Inform background of our decesion
+    chrome.extension.sendMessage({method: 'option_selected',
+                                  option: option,
+                                  hostname: hostname });
 }
 
 function showExtras(e) {
@@ -210,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var host = $('<span>');
                 host.html(hostname + ' ');
                 host.addClass('hostname');
+                host.data('hostname', hostname);
                 // Build the block, accept, and scrub buttons
                 var accept = $('<span>');
                 var acceptIcon = $('<i>');
@@ -223,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 accept.html(' ');
                 accept.append(acceptIcon);
                 accept.append(acceptCaption);
-                accept.prop('title', 'accept');
+                accept.prop('title', 'allow');
 
                 var block = $('<span>');
                 var blockIcon = $('<i>');

@@ -28,8 +28,10 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             }
         });
+    } else if(message.method === 'option_selected') {
+        console.log('User decided to ' + message.option + ' for ' +
+                    message.hostname);
     }
-    console.log('Received a message');
 });
 
 chrome.runtime.onInstalled.addListener(function(details) {
