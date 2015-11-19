@@ -156,6 +156,25 @@ function showExtras(e) {
     }
 }
 
+function calculateStats(actions) {
+    var total = actions.block + actions.scrub + actions.allow;
+    var blockPercent = 0;
+    var scrubPercent = 0;
+    var allowPercent = 0;
+    // Compute statistics
+    if (total !== 0) {
+        blockPercent = parseInt((actions.block / total) * 100);
+        scrubPercent = parseInt((actions.scrub / total) * 100);
+        allowPercent = parseInt((actions.allow / total) * 100);
+    }
+
+    return {
+        block: [actions.block, blockPercent],
+        scrub: [actions.scrub, scrubPercent],
+        allow: [actions.allow, allowPercent]
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     'use strict';
     chrome.extension.sendMessage({method: 'request_queued_requests'},
@@ -170,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var hostname = result;
                 var actions = null;
                 if ('actions' in results[result]) {
-                    actions = results[result].actions;
+                    actions = calculateStats(results[result].actions);
                 } else {
                     console.log('Malformed response skipping.');
                     continue;
@@ -196,33 +215,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 var acceptIcon = $('<i>');
                 acceptIcon.addClass('fa');
                 acceptIcon.addClass('fa-check');
+                var acceptCaption = $('<span>');
+                acceptCaption.html(actions.allow[1] + '%');
 
                 accept.addClass('option');
                 accept.addClass('allow');
                 accept.html(' ');
                 accept.append(acceptIcon);
+                accept.append(acceptCaption);
                 accept.prop('title', 'accept');
 
                 var block = $('<span>');
                 var blockIcon = $('<i>');
                 blockIcon.addClass('fa');
                 blockIcon.addClass('fa-times');
+                var blockCaption = $('<span>');
+                blockCaption.html(actions.block[1] + '%');
 
                 block.addClass('option');
                 block.addClass('block');
                 block.html(' ');
                 block.append(blockIcon);
+                block.append(blockCaption);
                 block.prop('title', 'block');
 
                 var scrub = $('<span>');
                 var scrubIcon = $('<i>');
                 scrubIcon.addClass('fa');
                 scrubIcon.addClass('fa-hand-paper-o');
+                var scrubCaption = $('<span>');
+                scrubCaption.html(actions.scrub[1] + '%');
 
                 scrub.addClass('option');
                 scrub.addClass('scrub');
                 scrub.html(' ');
                 scrub.append(scrubIcon);
+                scrub.append(scrubCaption);
                 scrub.prop('title', 'scrub');
                 // Add all the options to the options div
                 options.append(host);
