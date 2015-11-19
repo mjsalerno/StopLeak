@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Build up the blocked request
                 console.log('Hostname: ' + hostname);
-                console.log('Actions: ' + actions);
+                console.log('Actions: ', actions);
                 // Create the parent span object
                 var item = $('<span>');
                 item.addClass('item');
@@ -336,4 +336,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+});
+
+/* Add the options page js to the button */
+$('.header .settings').click(function() {
+    chrome.runtime.openOptionsPage();
 });
