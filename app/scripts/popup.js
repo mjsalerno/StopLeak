@@ -3,15 +3,17 @@
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
-var DB_HOST = '127.0.0.1';
-var DB_PORT = '8765';
+// var DB_HOST = '127.0.0.1';
+// var DB_PORT = '8765';
 
 /* Create the websocket and define the responses for handling messages
  * received.
  */
-var wsConnection = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
+// var wsConnection = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
+
+/*
 wsConnection.onmessage = function(event) {
-    // console.log(event);
+    console.log(event);
     var message = JSON.parse(event.data);
     // console.log('Message:'  + message);
     switch (message.type) {
@@ -39,6 +41,7 @@ wsConnection.onmessage = function(event) {
             break;
     }
 };
+*/
 
 function getWOTString(rank) {
     'use strict';
@@ -134,6 +137,13 @@ function fade(e) {
         // Remove the item from the actual page.
         parent.parent().remove(parent);
     });
+    // Get the type of option selected
+    var option = element.parent().attr('title');
+    var hostname = parent.find('.hostname').data('hostname');
+    // Inform background of our decesion
+    chrome.extension.sendMessage({method: 'option_selected',
+                                  option: option,
+                                  hostname: hostname});
 }
 
 function showExtras(e) {
@@ -163,9 +173,9 @@ function calculateStats(actions) {
     var allowPercent = 0;
     // Compute statistics
     if (total !== 0) {
-        blockPercent = parseInt((actions.block / total) * 100);
-        scrubPercent = parseInt((actions.scrub / total) * 100);
-        allowPercent = parseInt((actions.allow / total) * 100);
+        blockPercent = ((actions.block / total) * 100).toFixed(1);
+        scrubPercent = ((actions.scrub / total) * 100).toFixed(1);
+        allowPercent = ((actions.allow / total) * 100).toFixed(1);
     }
 
     return {
@@ -196,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Build up the blocked request
                 console.log('Hostname: ' + hostname);
-                console.log('Actions: ' + actions);
+                console.log('Actions: ', actions);
                 // Create the parent span object
                 var item = $('<span>');
                 item.addClass('item');
@@ -210,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var host = $('<span>');
                 host.html(hostname + ' ');
                 host.addClass('hostname');
+                host.data('hostname', hostname);
                 // Build the block, accept, and scrub buttons
                 var accept = $('<span>');
                 var acceptIcon = $('<i>');
@@ -223,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 accept.html(' ');
                 accept.append(acceptIcon);
                 accept.append(acceptCaption);
-                accept.prop('title', 'accept');
+                accept.prop('title', 'allow');
 
                 var block = $('<span>');
                 var blockIcon = $('<i>');
@@ -325,4 +336,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+});
+
+/* Add the options page js to the button */
+$('.header .settings').click(function() {
+    chrome.runtime.openOptionsPage();
 });

@@ -63,3 +63,42 @@ i .fa {
     visibility: hidden;
     font-size: large
 }
+
+
+/* Handle header style */
+.header {
+    position: relative;
+}
+
+.header h2, .header img {
+    display: inline-block;
+}
+
+.header .settings {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: x-large;
+}
+
+.header .logo {
+    position: relative;
+    top: 50%;
+}
+
+.header .settings:hover {
+    color: #2196f3;
+    cursor: pointer;
+}
+
+.header .app_name {
+    position: relative;
+    top: 50%;
+    font-size: xx-large;
+}
+
+.header .app_details {
+    display: inline-block;
+    position: relative;
+    left: 20px;
+}

@@ -52,18 +52,25 @@ class StopleakDB(object):
         self.c.execute('SELECT * FROM domain_data WHERE domain = ?', (domain,))
         row = self.c.fetchone()
 
-    def get_counts(self, domain):
-        select = ('SELECT scrub, block, allow '
+    def get_counts(self, domains):
+        # Parameters to execute must be an iterable
+        params = domains
+        if isinstance(params, str):
+            params = (domains,)
+
+        # Add the right number of ?'s for sqlite3 to escape correctly
+        marks = ', '.join(['?'] * len(params))
+        select = ('SELECT block, scrub, allow '
                   'FROM domain_data '
-                  'WHERE domain = ?')
-        self.c.execute(select, (domain,))
-        result = self.c.fetchone()
+                  'WHERE domain IN ({})'.format(marks))
+
+        self.c.execute(select, params)
+        results = self.c.fetchall()
         # result column order is  order of query
-        if result:
-            result = {"scrub": result[0], "block": result[1], "allow": result[2]}
-        else:
-            result = {"scrub": 0, "block": 0, "allow": 0}
-        return result
+        domain_counts = {}
+        for domain, block, scrub, allow in results:
+            domain_counts[domain] = {"block": block, "scrub": scrub, "allow": allow}
+        return domain_counts
 
     def close(self):
         # commit just in case
