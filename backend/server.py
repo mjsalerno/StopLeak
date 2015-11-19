@@ -116,6 +116,10 @@ def handle_request(websocket, path):
     global stopLeak
 
     request = yield from websocket.recv()
+    if not request:
+        websocket.close()
+        return
+
     request_json = json.loads(request)
 
     logging.debug("Incoming request: %s", request_json)
