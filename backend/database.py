@@ -60,7 +60,7 @@ class StopleakDB(object):
 
         # Add the right number of ?'s for sqlite3 to escape correctly
         marks = ', '.join(['?'] * len(params))
-        select = ('SELECT block, scrub, allow '
+        select = ('SELECT domain, block, scrub, allow '
                   'FROM domain_data '
                   'WHERE domain IN ({})'.format(marks))
 
