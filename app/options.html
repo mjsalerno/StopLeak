@@ -4,26 +4,22 @@
     <title>StopLeak Options Page</title>
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
-    <link rel="stylesheet" href="bower_components/sweetalert2/dist/sweetalert2.css" />
+    <link rel="stylesheet" href="bower_components/components-font-awesome/css/font-awesome.css" />
     <!-- endbower -->
     <!-- endbuild -->
-    <!-- build:css styles/options.css -->
     <link rel="stylesheet" type="text/css" href="styles/options.css" />
-    <!-- endbuild -->
   </head>
   <body>
 
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
     <!-- build:js scripts/options.js -->
-    <script src="scripts/options.js"></script>
     <!-- endbuild -->
+    <script src="scripts/options.js"></script>
     <script src="scripts/constants.js"></script>
     <script src="scripts/storage.js"></script>
 
@@ -81,16 +77,14 @@
     <hr>
 
     Custom Settings:<br>
-    <table id="cs-tbl" class="box">
+    <table id="custom_settings">
         <tr class="box">
             <th class="box">Source</th>
             <th class="box">Destination</th>
             <th class="box">Action</th>
+            <th class="box">Remove</th>
         </tr>
-    </table>
-
-    <table id="add-cs-tbl" class="box">
-        <tr>
+        <tr id="custom_input">
             <td class="box"><input type="text" id="new-cs-src" placeholder="Source url"></td>
             <td class="box"><input type="text" id="new-cs-dst" placeholder="Destination url"></td>
             <td class="box">
@@ -100,20 +94,5 @@
     </table>
     <button id="add-cs-btn">Add</button>
     <button id="clear-cs-btn">Clear</button><br>
-
   </body>
 </html>
-
-
-<!-----------------
-
-whitelist:
-    add
-    remove
-blacklist:
-    add
-    remove
-strings to block
-    add
-    remove
--->

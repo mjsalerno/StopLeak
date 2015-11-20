@@ -1,5 +1,5 @@
 'use strict';
-/* global BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB*/
+/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB*/
 
 function addStringToUI(str, idd, key) {
     var table = document.getElementById(idd);
@@ -113,6 +113,7 @@ function addSetting(inId, tblId, key) {
     });
 }
 
+/*
 function addCustSetting() {
     var src = document.getElementById('new-cs-src').value;
     var dst = document.getElementById('new-cs-dst').value;
@@ -121,18 +122,17 @@ function addCustSetting() {
         return;
     }
     chrome.storage.sync.get(null, function(items) {
-
         var custSett = items[CUSTOM_SETTINGS] || {};
         var inCustSett = custSett[src] || {};
         inCustSett[dst] = action;
         custSett[src] = inCustSett;
         items[CUSTOM_SETTINGS] = custSett;
-
         chrome.storage.sync.set(items, function() {
             refreshCustSettings();
         });
     });
 }
+*/
 
 function addActions() {
     var x = document.getElementById('select-action');
@@ -180,6 +180,66 @@ function clearCustSettings() {
     document.getElementById('cs-tbl').innerHTML = '';
 }
 
+function removeColumn(evt) {
+    var element = $(evt.target);
+    var parent = element.parent().parent();
+    parent.fadeOut(400, function() {
+        // Remove the item from the actual page.
+        parent.parent().remove(parent);
+    });
+}
+
+function buildTableRow(src, dst, action) {
+    var customSettings = $('#custom_input');
+    var values = [src, dst, action];
+    // Build a new table row
+    var row = $('<tr>');
+    for (var value in values) {
+        var col = $('<td>', {
+            class: 'box',
+            html: values[value]
+        });
+        // Add the column to the row
+        row.append(col);
+    }
+    // Add the remove buttons
+    var removeCol = $('<td>', {
+        class: 'box',
+        css: {
+            'text-align': 'center'
+        }
+    });
+    var removeIcon = $('<i>', {
+        class: 'fa fa-times remove',
+        title: 'remove'
+    });
+    // Attach the onclick action
+    removeCol.click(removeColumn);
+    // Add icons to columns
+    removeCol.append(removeIcon);
+    // Add edit and remove buttons
+    row.append(removeCol);
+    // Add the new row to the table
+    customSettings.before(row);
+}
+
+function addCustomSettings2() {
+    var src = $('#new-cs-src');
+    var dst = $('#new-cs-dst');
+    var action = $('#select-action');
+    if (!src.val() || !dst.val() || !action.val()) {
+        // One of the values wasn't set so return
+        return;
+    }
+
+    // Add the row to the table
+    buildTableRow(src.val(), dst.val(), action.val());
+    // Clear the input
+    src.val('');
+    dst.val('');
+    action[0].selectedIndex = 0;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('add-filter-btn').onclick = function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
@@ -196,8 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('add-swwl-btn').onclick = function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
     };
-    document.getElementById('add-cs-btn').onclick = addCustSetting;
-
+    // document.getElementById('add-cs-btn').onclick = addCustSetting;
+    document.getElementById('add-cs-btn').onclick = addCustomSettings2;
     document.getElementById('clear-filter-btn').onclick = clearFilters;
     document.getElementById('clear-allow-btn').onclick = clearAllows;
     document.getElementById('clear-deny-btn').onclick = clearDeny;

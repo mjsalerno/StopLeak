@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "dependencies": {
     "jquery": "1.11.3",
-    "bootstrap": "3.3.5",
-    "sweetalert2": "~0.2.3"
+    "components-font-awesome": "~4.4.0"
   },
   "devDependencies": {
     "chai": "~3.3.0",
