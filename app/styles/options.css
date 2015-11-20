@@ -1,0 +1,15 @@
+.edit {
+    color: orange;
+}
+
+.edit:hover {
+    cursor: pointer;
+}
+
+.remove {
+    color: red;
+}
+
+.remove:hover {
+    cursor: pointer;
+}

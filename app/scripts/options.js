@@ -180,17 +180,45 @@ function clearCustSettings() {
     document.getElementById('cs-tbl').innerHTML = '';
 }
 
+function removeColumn(evt) {
+    var element = $(evt.target);
+    var parent = element.parent().parent();
+    parent.fadeOut(400, function() {
+        // Remove the item from the actual page.
+        parent.parent().remove(parent);
+    });
+}
+
 function buildTableRow(src, dst, action) {
     var customSettings = $('#custom_input');
     var values = [src, dst, action];
     // Build a new table row
     var row = $('<tr>');
     for (var value in values) {
-        var col = $('<td>');
-        col.addClass('box');
-        col.html(values[value]);
+        var col = $('<td>', {
+            class: 'box',
+            html: values[value]
+        });
+        // Add the column to the row
         row.append(col);
     }
+    // Add the remove buttons
+    var removeCol = $('<td>', {
+        class: 'box',
+        css: {
+            'text-align': 'center'
+        }
+    });
+    var removeIcon = $('<i>', {
+        class: 'fa fa-times remove',
+        title: 'remove'
+    });
+    // Attach the onclick action
+    removeCol.click(removeColumn);
+    // Add icons to columns
+    removeCol.append(removeIcon);
+    // Add edit and remove buttons
+    row.append(removeCol);
     // Add the new row to the table
     customSettings.before(row);
 }
