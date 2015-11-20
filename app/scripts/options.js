@@ -1,5 +1,48 @@
 'use strict';
-/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB*/
+/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting */
+
+function removeColumn(evt) {
+    var element = $(evt.target);
+    var parent = element.parent().parent();
+    parent.fadeOut(400, function() {
+        // Remove the item from the actual page.
+        parent.parent().remove(parent);
+    });
+}
+
+function buildTableRow(args) {
+    var customSettings = $('#custom_input');
+    var values = [args.src, args.dst, args.action];
+    // Build a new table row
+    var row = $('<tr>');
+    for (var value in values) {
+        var col = $('<td>', {
+            class: 'box',
+            html: values[value]
+        });
+        // Add the column to the row
+        row.append(col);
+    }
+    // Add the remove buttons
+    var removeCol = $('<td>', {
+        class: 'box',
+        css: {
+            'text-align': 'center'
+        }
+    });
+    var removeIcon = $('<i>', {
+        class: 'fa fa-times remove',
+        title: 'remove'
+    });
+    // Attach the onclick action
+    removeCol.click(removeColumn);
+    // Add icons to columns
+    removeCol.append(removeIcon);
+    // Add edit and remove buttons
+    row.append(removeCol);
+    // Add the new row to the table
+    customSettings.before(row);
+}
 
 function addStringToUI(str, idd, key) {
     var table = document.getElementById(idd);
@@ -30,6 +73,7 @@ function addStringToUI(str, idd, key) {
     cell0.appendChild(btn);
 }
 
+/*
 function addStringToCS(src, dst, action) {
     var table = document.getElementById('cs-tbl');
     var row = table.insertRow(0);
@@ -39,28 +83,8 @@ function addStringToCS(src, dst, action) {
     cell0.innerHTML = src;
     cell1.innerHTML = dst;
     cell2.innerHTML = action;
-
-    /*var btn = document.createElement('button');
-    btn.innerHTML = 'Delete';
-    btn.type = 'button';
-    btn.onclick = function() { // Note this is a function
-        chrome.storage.sync.get(null, function(items) {
-            var filters = items[key];
-            var index = filters.indexOf(str);
-            if (index > -1) {
-                filters.splice(index, 1);
-                var a  = {};
-                a[key]=filters;
-                chrome.storage.sync.set(a, function() {
-                    row.parentNode.removeChild(row);
-                });
-            } else {
-                console.log('could not remove the filter: ' + str);
-            }
-        });
-    };
-    cell0.appendChild(btn);*/
 }
+*/
 
 function refreshSetting(idd, key) {
     chrome.storage.sync.get(null, function(items) {
@@ -81,11 +105,15 @@ function refreshCustSettings() {
             return;
         }
         var maps = items[CUSTOM_SETTINGS];
-        document.getElementById('cs-tbl').innerHTML = '';
-        for (var i in maps) {
-            for (var j in maps[i]) {
-                //addStringToUI(filters[i], idd, key);
-                addStringToCS(i, j, maps[i][j]);
+        // Iterate through the map and repopulate the custom settings
+        for (var src in maps) {
+            var rule = maps[src];
+            for (var dst in rule) {
+                buildTableRow({
+                    src: src,
+                    dst: dst,
+                    action: rule[dst]
+                });
             }
         }
     });
@@ -112,27 +140,6 @@ function addSetting(inId, tblId, key) {
         });
     });
 }
-
-/*
-function addCustSetting() {
-    var src = document.getElementById('new-cs-src').value;
-    var dst = document.getElementById('new-cs-dst').value;
-    var action = document.getElementById('select-action').value;
-    if (!src || !dst || !action) {
-        return;
-    }
-    chrome.storage.sync.get(null, function(items) {
-        var custSett = items[CUSTOM_SETTINGS] || {};
-        var inCustSett = custSett[src] || {};
-        inCustSett[dst] = action;
-        custSett[src] = inCustSett;
-        items[CUSTOM_SETTINGS] = custSett;
-        chrome.storage.sync.set(items, function() {
-            refreshCustSettings();
-        });
-    });
-}
-*/
 
 function addActions() {
     var x = document.getElementById('select-action');
@@ -180,50 +187,7 @@ function clearCustSettings() {
     document.getElementById('cs-tbl').innerHTML = '';
 }
 
-function removeColumn(evt) {
-    var element = $(evt.target);
-    var parent = element.parent().parent();
-    parent.fadeOut(400, function() {
-        // Remove the item from the actual page.
-        parent.parent().remove(parent);
-    });
-}
-
-function buildTableRow(src, dst, action) {
-    var customSettings = $('#custom_input');
-    var values = [src, dst, action];
-    // Build a new table row
-    var row = $('<tr>');
-    for (var value in values) {
-        var col = $('<td>', {
-            class: 'box',
-            html: values[value]
-        });
-        // Add the column to the row
-        row.append(col);
-    }
-    // Add the remove buttons
-    var removeCol = $('<td>', {
-        class: 'box',
-        css: {
-            'text-align': 'center'
-        }
-    });
-    var removeIcon = $('<i>', {
-        class: 'fa fa-times remove',
-        title: 'remove'
-    });
-    // Attach the onclick action
-    removeCol.click(removeColumn);
-    // Add icons to columns
-    removeCol.append(removeIcon);
-    // Add edit and remove buttons
-    row.append(removeCol);
-    // Add the new row to the table
-    customSettings.before(row);
-}
-
-function addCustomSettings2() {
+function addCustomSetting() {
     var src = $('#new-cs-src');
     var dst = $('#new-cs-dst');
     var action = $('#select-action');
@@ -231,9 +195,21 @@ function addCustomSettings2() {
         // One of the values wasn't set so return
         return;
     }
+    // Build an args map
+    var args = {
+        src: src.val(),
+        dst: dst.val(),
+        action: action.val()
+    };
+
+    updateSyncSetting(CUSTOM_SETTINGS, {
+        dst: dst.val(),
+        src: src.val(),
+        action: action.val()
+    }, buildTableRow, args);
 
     // Add the row to the table
-    buildTableRow(src.val(), dst.val(), action.val());
+    // buildTableRow(src.val(), dst.val(), action.val());
     // Clear the input
     src.val('');
     dst.val('');
@@ -257,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
     };
     // document.getElementById('add-cs-btn').onclick = addCustSetting;
-    document.getElementById('add-cs-btn').onclick = addCustomSettings2;
+    document.getElementById('add-cs-btn').onclick = addCustomSetting;
     document.getElementById('clear-filter-btn').onclick = clearFilters;
     document.getElementById('clear-allow-btn').onclick = clearAllows;
     document.getElementById('clear-deny-btn').onclick = clearDeny;

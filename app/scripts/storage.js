@@ -18,8 +18,7 @@ const ACTION_DENY = 'deny';
 const ACTION_SCRUB = 'scrub';
 const ACTION_UNKNOWN = 'unknown';
 
-/*
-function addSetting(setting, map, onsuccess, onError) {
+function updateSyncSetting(setting, map, onsuccess, argss, onError, argse) {
     switch (setting) {
         case CUSTOM_SETTINGS:
             chrome.storage.sync.get(null, function(items) {
@@ -32,7 +31,7 @@ function addSetting(setting, map, onsuccess, onError) {
 
                 chrome.storage.sync.set(items, function() {
                     if (onsuccess !== null) {
-                        onsuccess();
+                        onsuccess(argss);
                     }
                 });
             });
@@ -42,7 +41,6 @@ function addSetting(setting, map, onsuccess, onError) {
             break;
     }
 }
-*/
 
 /**
  * Load user data from storage.
