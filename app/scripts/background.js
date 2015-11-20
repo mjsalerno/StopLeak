@@ -12,7 +12,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
                     },
                     // Store like extra PII content here?
                     'extras': ['http://www.adds.com?user=cse509&location=USA',
-                               'email=cse509@cs.stonybrook.edu']
+                        'email=cse509@cs.stonybrook.edu']
                 },
                 'scottharvey.com': {
                     'actions': {
@@ -30,7 +30,7 @@ chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
         });
     } else if (message.method === 'option_selected') {
         console.log('User decided to ' + message.option + ' for ' +
-                    message.hostname);
+            message.hostname);
     }
 });
 
@@ -53,18 +53,66 @@ stopleak.requestFilter = {
 };
 
 /**
- * Checks whether this string contains any PII data.
+ * Add message to the list of reasons to block this request.
  *
- * @param {string} str The string to screen for PII.
- * @returns {boolean} True if the string contains PII data.
+ * @param {object} request The request to check.
+ * @param {string} message Message explaining why this request was blocked.
  */
-function containsPIIdata(str) {
-    for (var i = 0; i < stopleak.PIIData.length; ++i) {
-        if (str.indexOf(stopleak.PIIData[i]) !== -1) {
-            return true;
+function addBlockMessage(request, message) {
+    request.blockReasons.push(message);
+}
+
+/**
+ * Checks whether this object contains any PII data and accumulates the found
+ * information into the request.
+ *
+ * @param {object} request The request associated with this object..
+ * @param {*} object The object to screen for PII.
+ * @returns {boolean} True if the object contains PII data.
+ */
+function containsPIIdata(request, object) {
+    var found = false;
+    var pii;
+    var lower = JSON.stringify(object).toLocaleLowerCase();
+    var len = stopleak.PIIData.length;
+    for (var i = 0; i < len; ++i) {
+        pii = stopleak.PIIData[i];
+        if (lower.indexOf(pii) !== -1) {
+            request.piiFound[pii] = 1;
+            found = true;
         }
     }
-    return false;
+    return found;
+}
+
+/**
+ * Checks whether this request url contains any PII data.
+ *
+ * @param {object} request The request to check.
+ * @returns {boolean} True if the url contains PII data.
+ */
+function piiInRequestUrl(request) {
+    var piiFound = false;
+    var url = new URL(request.url);
+    var tabURL = stopleak.tabCache.getTabURL(request.tabId);
+    if (url.protocol !== 'https:' &&
+        (url.password !== '' || url.username !== '')) {
+        addBlockMessage(request, 'Sending username or password over an ' +
+            'insecure connection.');
+        piiFound = true;
+    }
+    var afterDomain = url.pathname + url.search + url.hash;
+    if (afterDomain.indexOf(tabURL.host) !== -1) {
+        // current hostname info is leaking in this request
+        addBlockMessage(request, 'Info about the current domain (' +
+            tabURL.host + ') is present in this request.');
+        piiFound = true;
+    }
+    // any PII data is leaking in this request
+    if (containsPIIdata(request, afterDomain)) {
+        piiFound = true;
+    }
+    return piiFound;
 }
 
 /**
@@ -74,17 +122,8 @@ function containsPIIdata(str) {
  * @returns {boolean} True if the body contains PII data.
  */
 function piiInRequestBody(request) {
-    var piiFound = false;
     var requestBody = stopleak.getRequestBody(request);
-    var keys = Object.keys(requestBody);
-    for (var i = 0; i < keys.length; ++i) {
-        var key = keys[i];
-        piiFound = (containsPIIdata(key) || containsPIIdata(requestBody[key]));
-        if (piiFound) {
-            break;
-        }
-    }
-    return piiFound;
+    return containsPIIdata(request, requestBody);
 }
 
 /**
@@ -103,23 +142,26 @@ function piiInRequestHeaders(request) {
             // TODO: Is there PII in the Cookie being sent?
             // Does this part even matter? I think we should block cookies
             // that are being sent over http.
+            requestHeaders.splice(i, 1);
         } else if (header.name === 'Referer') {
             // TODO: Is there PII in the referrer url, i.e. the current url of
             // this frame.
-            // For now just truncate referrer to it's origin to remove params.
-            header.value = stopleak.extractOrigin(header.value);
+            requestHeaders.splice(i, 1);
         } else {
             // TODO: just naively check for PII?
             // JavaScript can add arbitrary headers to XMLHttpRequests using
             // the setRequestHeader() method.
             // w3.org/TR/XMLHttpRequest/#the-setrequestheader-method
-            piiFound = (containsPIIdata(header.name) ||
-                containsPIIdata(headerValue));
-        }
-        if (piiFound) {
-            break;
+            if (containsPIIdata(request, header.name + ':' + headerValue)) {
+                piiFound = true;
+            }
         }
     }
+    // Fake the ETag header
+    requestHeaders.push({
+        name: 'If-None-Match',
+        value: stopleak.getPseudoRandomString(32)
+    });
     return piiFound;
 }
 
@@ -127,10 +169,14 @@ function piiInRequestHeaders(request) {
  * Checks whether this request contains any PII data.
  *
  * @param {object} request The request to check.
- * @returns {boolean} True if the headers contain PII data.
+ * @returns {boolean} True if the request contains PII data.
  */
 function piiInRequest(request) {
-    return piiInRequestBody(request) || piiInRequestHeaders(request);
+    // We want to report all leaks in the request
+    var url = piiInRequestUrl(request);
+    var body = piiInRequestBody(request);
+    var headers = piiInRequestHeaders(request);
+    return url || body || headers;
 }
 
 /**
@@ -150,7 +196,7 @@ function fullRequest(request) {
 /**
  * Save the request details for onBeforeSendHeaders to use later on.
  *
- * @param {!Object} details The HTTP request before being sent.
+ * @param {object} details The HTTP request before being sent.
  * @return {object} The BlockingResponse to allow or deny this request.
  */
 function onBeforeRequest(details) {
@@ -162,7 +208,7 @@ function onBeforeRequest(details) {
  * Modifies or blocks HTTP requests based possible PII content and the user's
  * preferences.
  *
- * @param {!Object} details The HTTP request containing request headers.
+ * @param {object} details The HTTP request containing request headers.
  * @param {string} sourceOrigin The source origin.
  * @param {string} destOrigin The destination origin.
  * @return {object} The BlockingResponse to cancel this request or modify
@@ -171,43 +217,42 @@ function onBeforeRequest(details) {
 function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
     var request = fullRequest(details);
     var userAction = stopleak.getReqAction(sourceOrigin, destOrigin);
-    var allow = {requestHeaders: request.requestHeaders};
+    var cancel = false;
+    var sanitizedHeaders = request.requestHeaders;
 
+    // Reasons why we choose to block this request
+    request.blockReasons = [];
+    request.piiFound = {};
     // Check if allow, deny, scrub, unknown using the full request
     switch (userAction) {
         case ACTION_ALLOW:
-            return allow;
+            break;
         case ACTION_SCRUB:
             // TODO: We can only cancel the request OR modify the HTTP headers
             // We can't modify the body of a request, e.g. formData, therefore
             // if there is PII in the requestBody I think we should cancel.
-            var scrubbedHeaders = request.requestHeaders;
-            var piiDataInBody = piiInRequest(request);
-            return {
-                cancel: piiDataInBody,
-                requestHeaders: scrubbedHeaders
-            };
+            cancel = piiInRequest(request);
+            break;
         case ACTION_DENY:
             // TODO: Should we block unconditionally or only if PII is present?
-            stopleak.tabCache.incBlockCount(request.tabId);
-            return {cancel: true};
+            cancel = true;
+            break;
         case ACTION_UNKNOWN:
             if (piiInRequest(request)) {
-                // Block and notify user (tab).
-                stopleak.tabCache.incBlockCount(request.tabId);
-                return {cancel: true};
-            } else {
-                // Allow request that have no PII data.
-                return allow;
+                // TODO: notify user's tab.
+                cancel = true;
             }
             break;
         default:
             console.assert(false, 'Reached unreachable code!');
     }
-    return {
-        cancel: false,
-        requestHeaders: request.requestHeaders
-    };
+    if (cancel) {
+        stopleak.tabCache.incBlockCount(request.tabId);
+        console.log('Cancelling request because:', request.blockReasons);
+        console.log('PII found:', Object.keys(request.piiFound));
+        return {cancel: cancel};
+    }
+    return {requestHeaders: sanitizedHeaders};
 }
 
 /**
