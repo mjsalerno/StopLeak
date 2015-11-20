@@ -18,6 +18,32 @@ const ACTION_DENY = 'deny';
 const ACTION_SCRUB = 'scrub';
 const ACTION_UNKNOWN = 'unknown';
 
+/*
+function addSetting(setting, map, onsuccess, onError) {
+    switch (setting) {
+        case CUSTOM_SETTINGS:
+            chrome.storage.sync.get(null, function(items) {
+
+                var custSett = items[CUSTOM_SETTINGS] || {};
+                var inCustSett = custSett[map.src] || {};
+                inCustSett[map.dst] = map.action;
+                custSett[map.src] = inCustSett;
+                items[CUSTOM_SETTINGS] = custSett;
+
+                chrome.storage.sync.set(items, function() {
+                    if (onsuccess !== null) {
+                        onsuccess();
+                    }
+                });
+            });
+            break;
+        default:
+            console.log('do not know how to add: ' + setting);
+            break;
+    }
+}
+*/
+
 /**
  * Load user data from storage.
  */
