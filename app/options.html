@@ -22,8 +22,8 @@
     <!-- endbuild -->
 
     <!-- build:js scripts/options.js -->
-    <script src="scripts/options.js"></script>
     <!-- endbuild -->
+    <script src="scripts/options.js"></script>
     <script src="scripts/constants.js"></script>
     <script src="scripts/storage.js"></script>
 
@@ -81,16 +81,13 @@
     <hr>
 
     Custom Settings:<br>
-    <table id="cs-tbl" class="box">
+    <table id="custom_settings">
         <tr class="box">
             <th class="box">Source</th>
             <th class="box">Destination</th>
             <th class="box">Action</th>
         </tr>
-    </table>
-
-    <table id="add-cs-tbl" class="box">
-        <tr>
+        <tr id="custom_input">
             <td class="box"><input type="text" id="new-cs-src" placeholder="Source url"></td>
             <td class="box"><input type="text" id="new-cs-dst" placeholder="Destination url"></td>
             <td class="box">
@@ -100,20 +97,5 @@
     </table>
     <button id="add-cs-btn">Add</button>
     <button id="clear-cs-btn">Clear</button><br>
-
   </body>
 </html>
-
-
-<!-----------------
-
-whitelist:
-    add
-    remove
-blacklist:
-    add
-    remove
-strings to block
-    add
-    remove
--->
