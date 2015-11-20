@@ -9,6 +9,20 @@ var socket = null;
 /* Deferred Object to send only when open. */
 var socketDeferred = $.Deferred();
 
+function webSocketReceive(event) {
+    var message = JSON.parse(event.data);
+    switch (message.type) {
+        case 'get_counts':
+            //var results = message.value;
+            //displayCounts(results.block, results.scrub, results.allow);
+            console.log('Store counts to give to popup: ' + event.data);
+            break;
+        default:
+            console.log('Unsupported event: ' + message.type + ' received.');
+            break;
+    }
+}
+
 function setupWebSocket(socketDeferred) {
     var socket = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
 
@@ -21,22 +35,7 @@ function setupWebSocket(socketDeferred) {
     socket.onclose = function() {
         socketDeferred.reject();
     };
-    socket.onmessage = function(event) {
-        // console.log(event);
-        var message = JSON.parse(event.data);
-        // console.log('Message:'  + message);
-        switch (message.type) {
-            case 'get_counts':
-                //var results = message.value;
-                //displayCounts(results.block, results.scrub, results.allow);
-                // Store results to send to popup.js
-                break;
-            default:
-                console.log('Unsupported event: ' + message.type +
-                            ' received.');
-                break;
-        }
-    };
+    socket.onmessage = webSocketReceive;
     return socket;
 }
 
