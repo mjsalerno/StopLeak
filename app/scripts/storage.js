@@ -18,7 +18,39 @@ const ACTION_DENY = 'deny';
 const ACTION_SCRUB = 'scrub';
 const ACTION_UNKNOWN = 'unknown';
 
-/*
+function getSyncStorage(setting) {
+    var rtn = [];
+    switch (setting) {
+        case CUSTOM_SETTINGS:
+            break;
+
+        case BLOCKED_STRINGS:
+            break;
+
+        default:
+            console.log('do not know how to get: ' + setting);
+            break;
+    }
+}
+
+function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
+    var tmp;
+    switch (setting) {
+        case CUSTOM_SETTINGS:
+            if (stopleak.custSettings.hasOwnProperty(map.src)) {
+                tmp = stopleak.custSettings[map.src];
+                if (tmp.hasOwnProperty(map.dst)) {
+                    delete tmp[map.dst];
+                }
+            }
+            break;
+
+        default:
+            console.log('do not know how to get: ' + setting);
+            break;
+    }
+}
+
 function addSetting(setting, map, onsuccess, onError) {
     switch (setting) {
         case CUSTOM_SETTINGS:
@@ -37,12 +69,15 @@ function addSetting(setting, map, onsuccess, onError) {
                 });
             });
             break;
+
+        case BLOCKED_STRINGS:
+            break;
+
         default:
             console.log('do not know how to add: ' + setting);
             break;
     }
 }
-*/
 
 /**
  * Load user data from storage.
