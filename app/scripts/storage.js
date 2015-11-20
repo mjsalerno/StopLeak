@@ -18,6 +18,32 @@ const ACTION_DENY = 'deny';
 const ACTION_SCRUB = 'scrub';
 const ACTION_UNKNOWN = 'unknown';
 
+/*
+function addSetting(setting, map, onsuccess, onError) {
+    switch (setting) {
+        case CUSTOM_SETTINGS:
+            chrome.storage.sync.get(null, function(items) {
+
+                var custSett = items[CUSTOM_SETTINGS] || {};
+                var inCustSett = custSett[map.src] || {};
+                inCustSett[map.dst] = map.action;
+                custSett[map.src] = inCustSett;
+                items[CUSTOM_SETTINGS] = custSett;
+
+                chrome.storage.sync.set(items, function() {
+                    if (onsuccess !== null) {
+                        onsuccess();
+                    }
+                });
+            });
+            break;
+        default:
+            console.log('do not know how to add: ' + setting);
+            break;
+    }
+}
+*/
+
 /**
  * Load user data from storage.
  */
@@ -108,19 +134,19 @@ stopleak.getReqAction = function(src, dst) {
     var i;
     var len;
 
-    //check tuple thing -> [{src:'source origin', dst: 'dst origin', action: ACTION_*}, ...]
-    len = stopleak.custSettings.length;
-    for (i = 0; i < len; i++) {
-        var map = stopleak.custSettings[i];
-        if (map.src === src && map.dst === dst) {
-            if (map.action !== ACTION_ALLOW || map.action !== ACTION_DENY ||
-                map.action !== ACTION_SCRUB) {
+    //check cust settings
+    if (stopleak.custSettings.hasOwnProperty(src) &&
+        stopleak.custSettings[src].hasOwnProperty(dst)) {
 
-                console.log('storage: invalid custom setting: ' + map);
-                return ACTION_UNKNOWN;
-            } else {
-                return map.action;
-            }
+        var action = stopleak.custSettings[src][dst];
+
+        if (action !== ACTION_ALLOW || action !== ACTION_DENY ||
+            action !== ACTION_SCRUB) {
+
+            console.log('storage: invalid custom setting: ' + action);
+            return ACTION_UNKNOWN;
+        } else {
+            return action;
         }
     }
 

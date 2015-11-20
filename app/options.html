@@ -1,26 +1,25 @@
 <!doctype html>
 <html>
   <head>
+    <title>StopLeak Options Page</title>
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/components-font-awesome/css/font-awesome.css" />
     <!-- endbower -->
     <!-- endbuild -->
-    <!-- build:css styles/main.css -->
-    <link href="styles/main.css" rel="stylesheet">
-    <!-- endbuild -->
+    <link rel="stylesheet" type="text/css" href="styles/options.css" />
   </head>
   <body>
 
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
     <!-- build:js scripts/options.js -->
-    <script src="scripts/options.js"></script>
     <!-- endbuild -->
+    <script src="scripts/options.js"></script>
     <script src="scripts/constants.js"></script>
     <script src="scripts/storage.js"></script>
 
@@ -31,7 +30,7 @@
             padding: 5px;
         }
     </style>
-    
+
     Filters:<br>
     <input type="text" id="new-filter">
     <button id="add-filter-btn">Add</button>
@@ -78,18 +77,16 @@
     <hr>
 
     Custom Settings:<br>
-    <table id="cs-tbl" class="box">
+    <table id="custom_settings">
         <tr class="box">
             <th class="box">Source</th>
             <th class="box">Destination</th>
             <th class="box">Action</th>
+            <th class="box">Remove</th>
         </tr>
-    </table>
-
-    <table id="add-cs-tbl" class="box">
-        <tr>
-            <td class="box"><input type="text" id="new-cs-src"></td>
-            <td class="box"><input type="text" id="new-cs-dst"></td>
+        <tr id="custom_input">
+            <td class="box"><input type="text" id="new-cs-src" placeholder="Source url"></td>
+            <td class="box"><input type="text" id="new-cs-dst" placeholder="Destination url"></td>
             <td class="box">
                 <select id="select-action"></select>
             </td>
@@ -97,23 +94,5 @@
     </table>
     <button id="add-cs-btn">Add</button>
     <button id="clear-cs-btn">Clear</button><br>
-
   </body>
 </html>
-
-
-<!-----------------
-
-whitelist:
-    add
-    remove
-blacklist:
-    add 
-    remove
-strings to block
-    add
-    remove
--->
-
-
-
