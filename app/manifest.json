@@ -15,7 +15,9 @@
       "scripts/storage.js",
       "scripts/chromereload.js",
       "scripts/tabs.js",
-      "scripts/background.js"
+      "scripts/background.js",
+      "bower_components/jquery/dist/jquery.js",
+      "scripts/socket.js"
     ]
   },
   "browser_action": {

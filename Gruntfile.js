@@ -355,6 +355,11 @@ module.exports = function(grunt) {
         'compress'
     ]);
 
+    grunt.registerTask('lint', [
+        'jscs',
+        'jshint',
+    ]);
+
     grunt.registerTask('default', [
         'jshint',
         'jscs',
