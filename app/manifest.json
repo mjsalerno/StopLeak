@@ -15,7 +15,8 @@
       "scripts/storage.js",
       "scripts/chromereload.js",
       "scripts/tabs.js",
-      "scripts/background.js"
+      "scripts/background.js",
+      "scripts/socket.js"
     ]
   },
   "browser_action": {
