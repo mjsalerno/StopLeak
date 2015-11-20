@@ -90,3 +90,13 @@ stopleak.getRequestBody = function(request) {
 stopleak.arrayToString = function(buf) {
     return new TextDecoder().decode(new Uint8Array(buf));
 };
+
+/**
+ * Returns a pseudo random string of length len.
+ *
+ * @param {number} len Length of the random string to generate (max 1099).
+ * @return {String} pseudo random string of len characters.
+ */
+stopleak.getPseudoRandomString = function(len) {
+    return (Math.random() * Math.random()).toString(31).slice(-len);
+};
