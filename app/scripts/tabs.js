@@ -20,7 +20,10 @@ var TabCache = function() {
 TabCache.prototype.getTab = function(tabId) {
     if (!this.tabs.hasOwnProperty(tabId)) {
         // requests: Maps requestsId's to requests
-        this.tabs[tabId] = {blocks: 0, requests: {}};
+        this.tabs[tabId] = {
+            blocks: 0,
+            requests: {}
+        };
     }
     return this.tabs[tabId];
 };
