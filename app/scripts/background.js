@@ -1,5 +1,6 @@
 'use strict';
-/* global chrome, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
+/* global chrome, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN,
+    BLOCKED_STRINGS */
 
 function getBlockedRequests() {
     // TODO: Actually collect the blocked requests to send to the popup
@@ -95,9 +96,9 @@ function containsPIIdata(request, object) {
     var found = false;
     var pii;
     var lower = JSON.stringify(object).toLocaleLowerCase();
-    var len = stopleak.PIIData.length;
+    var len = stopleak[BLOCKED_STRINGS].length;
     for (var i = 0; i < len; ++i) {
-        pii = stopleak.PIIData[i];
+        pii = stopleak[BLOCKED_STRINGS][i];
         if (lower.indexOf(pii) !== -1) {
             request.piiFound[pii] = 1;
             found = true;
