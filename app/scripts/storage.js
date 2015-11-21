@@ -233,6 +233,8 @@ function updateUserData(changes, areaName) {
         change = changes[BLOCKED_STRINGS];
         if (change.hasOwnProperty('newValue')) {
             stopleak[BLOCKED_STRINGS] = change.newValue || [];
+        } else {
+            stopleak[BLOCKED_STRINGS] = [];
         }
     }
 
@@ -240,6 +242,8 @@ function updateUserData(changes, areaName) {
         change = changes[ALLOW];
         if (change.hasOwnProperty('newValue')) {
             stopleak[ALLOW] = change.newValue || [];
+        } else {
+            stopleak[ALLOW] = [];
         }
     }
 
@@ -247,6 +251,8 @@ function updateUserData(changes, areaName) {
         change = changes[DENY];
         if (change.hasOwnProperty('newValue')) {
             stopleak[DENY] = change.newValue || [];
+        } else {
+            stopleak[DENY] = [];
         }
     }
 
@@ -254,6 +260,8 @@ function updateUserData(changes, areaName) {
         change = changes[SCRUB];
         if (change.hasOwnProperty('newValue')) {
             stopleak[SCRUB] = change.newValue || [];
+        } else {
+            stopleak[SCRUB] = [];
         }
     }
 
@@ -261,6 +269,8 @@ function updateUserData(changes, areaName) {
         change = changes[SWWL];
         if (change.hasOwnProperty('newValue')) {
             stopleak[SWWL] = change.newValue || [];
+        } else {
+            stopleak[SWWL] = [];
         }
     }
 
@@ -268,6 +278,8 @@ function updateUserData(changes, areaName) {
         change = changes[CUSTOM_SETTINGS];
         if (change.hasOwnProperty('newValue')) {
             stopleak[CUSTOM_SETTINGS] = change.custSettings || {};
+        } else {
+            stopleak[CUSTOM_SETTINGS] = {};
         }
     }
 }
