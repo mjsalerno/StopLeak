@@ -9,15 +9,15 @@ function getWOTString(rank) {
     var rtn;
 
     if (rank >= 80) {
-        rtn = 'Excellent';
+        rtn = ['Excellent', 'images/30_excellent.png'];
     } else if (rank >= 60) {
-        rtn = 'Good';
+        rtn = ['Good', 'images/30_good.png'];
     } else if (rank >= 40) {
-        rtn = 'Unsatisfactory';
+        rtn = ['Unsatisfactory', 'images/30_unsatisfactory.png'];
     } else if (rank >= 20) {
-        rtn = 'Poor';
+        rtn = ['Poor', 'images/30_poor.png'];
     } else {
-        rtn = 'Very poor';
+        rtn = ['Very poor', 'images/30_verypoor.png'];
     }
 
     return rtn;
@@ -54,7 +54,13 @@ function getWOTRank(url, element) {
                 element.html(' WOT: None');
             } else {
                 var rank = data[url][0][0];
-                element.html(' WOT: ' + getWOTString(rank));
+                var wot = getWOTString(rank);
+                element.html(' WOT: ' + wot[0]);
+                var icon = $('<img>', {
+                    src: wot[1],
+                    alt: wot[0]
+                });
+                element.append(icon);
             }
         },
         error: function() {
