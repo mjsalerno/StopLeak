@@ -196,7 +196,7 @@ function clearCustSettings() {
     var header = $('.header');
     var ipt = $('#custom_input');
     var custom = $('#custom_settings');
-    // EMpty everything and re-add it
+    // Empty everything and re-add it
     custom.empty();
     custom.append(header);
     custom.append(ipt);
@@ -265,4 +265,12 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshCustSettings();
 
     addActions();
+});
+
+$(document).keypress(function(e) {
+    if (e.which === 13) {
+        if ($('#new-cs-src').is(':focus') || $('#new-cs-dst').is(':focus')) {
+            $('#add-cs-btn').click();
+        }
+    }
 });
