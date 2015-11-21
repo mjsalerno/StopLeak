@@ -198,6 +198,19 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
         /* falls through */
         case SWWL:
             // if not BLOCKED_STRINGS and not CUSTOM_SETTINGS
+            if (map.val) {
+                try {
+                    var u = new URL(map.val);
+                    console.log('storage: adding addingURL: ', u);
+                    map.val = u.origin;
+                } catch (err) {
+                    console.log('storage: url not correct format - ' + map.val);
+                    if (onError !== null) {
+                        onError();
+                    }
+                    return;
+                }
+            }
         /* falls through */
         case BLOCKED_STRINGS:
             if (!map.val) {
@@ -266,44 +279,32 @@ function updateUserData(changes, areaName) {
     var change;
     if (changes.hasOwnProperty(BLOCKED_STRINGS)) {
         change = changes[BLOCKED_STRINGS];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[BLOCKED_STRINGS] = change.newValue || [];
-        }
+        stopleak[BLOCKED_STRINGS] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(ALLOW)) {
         change = changes[ALLOW];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[ALLOW] = change.newValue || [];
-        }
+        stopleak[ALLOW] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(DENY)) {
         change = changes[DENY];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[DENY] = change.newValue || [];
-        }
+        stopleak[DENY] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(SCRUB)) {
         change = changes[SCRUB];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[SCRUB] = change.newValue || [];
-        }
+        stopleak[SCRUB] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(SWWL)) {
         change = changes[SWWL];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[SWWL] = change.newValue || [];
-        }
+        stopleak[SWWL] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(CUSTOM_SETTINGS)) {
         change = changes[CUSTOM_SETTINGS];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[CUSTOM_SETTINGS] = change.newValue || {};
-        }
+        stopleak[CUSTOM_SETTINGS] = change.newValue || {};
     }
 }
 
