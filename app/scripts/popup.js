@@ -177,15 +177,15 @@ function fade(e) {
     });
     // Get the type of option selected
     var option = element.parent().attr('title');
-    var hostname = parent.find('.hostname').data('hostname');
+    var origin = parent.find('.hostname').data('origin');
     // Inform background of our decesion
     console.log('option: ' + option);
-    console.log('hostname: ' + hostname);
+    console.log('hostname: ' + origin);
     chrome.extension.sendMessage({method: 'option_selected',
                                   option: option,
-                                  hostname: hostname});
+                                  hostname: origin});
 
-    updateSyncSetting(optionToStorage(option), {val: hostname}, null, null);
+    updateSyncSetting(optionToStorage(option), {val: origin}, null, null);
 }
 
 function showExtras(e) {
@@ -233,15 +233,15 @@ function updateCountCaption(item, className, percent) {
 }
 
 function addCountsToUI(counts) {
-    for (var hostname in counts) {
-        if (!counts.hasOwnProperty(hostname)) {
+    for (var origin in counts) {
+        if (!counts.hasOwnProperty(origin)) {
             continue;
         }
-        var actions = calculateStats(counts[hostname]);
-        // Since the id is a hostname we must replace the dots, since JQuery
+        var actions = calculateStats(counts[origin]);
+        // Since the id is a origin we must replace the dots, since JQuery
         // doesn't like dots.
-        // e.g. '#google.com' -> '#google\.com'
-        var itemId = hostname.replace(/\./g, '\\.');
+        // e.g. '#https://google.com' -> '#https://google\.com'
+        var itemId = origin.replace(/\./g, '\\.');
         var item = $('#' + itemId);
         updateCountCaption(item, 'allow', actions.allow[1]);
         updateCountCaption(item, 'block', actions.block[1]);
@@ -284,8 +284,8 @@ function updateUI(hostname, request) {
     // Create the parent span object
     var item = $('<span>');
     item.addClass('item');
-    // Store the hostname as the id for easy lookups
-    item.attr('id', hostname);
+    // Store the origin as the id for easy lookups
+    item.attr('id', request.origin);
     var options = $('<div>');
     var ranks = $('<div>');
     var extras = $('<div>');
@@ -296,7 +296,7 @@ function updateUI(hostname, request) {
     var host = $('<span>');
     host.html(hostname + ' ');
     host.addClass('hostname');
-    host.data('hostname', hostname);
+    host.data('origin', request.origin);
     // Build the block, accept, and scrub buttons
     var accept = $('<span>');
     var acceptIcon = $('<i>');
@@ -428,15 +428,15 @@ function updateUI(hostname, request) {
  * @param {object} requests Usable by updateUI()
  */
 function processRequests(requests) {
-    var hostnames = [];
+    var origins = [];
     for (var hostname in requests) {
         if (!requests.hasOwnProperty(hostname)) {
             continue;
         }
-        hostnames.push(hostname);
+        origins.push(requests[hostname].origin);
         updateUI(hostname, requests[hostname]);
     }
-    sendCountsRequest(hostnames);
+    sendCountsRequest(origins);
 }
 
 /**
@@ -476,6 +476,7 @@ function convertRequests(requests) {
         // Add the details about the request
         blockedRequests[hostname] = {
             requestId: id,
+            origin: url.origin,
             reasons: reasons,
             headers: request.requestHeaders,
             extras: extras,
