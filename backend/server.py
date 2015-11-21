@@ -101,7 +101,7 @@ def init_logging(log_file, log_level):
     Initialize the logging module.
     """
     fmt = '%(asctime)s - %(name)s - %(levelname)s: %(message)s'
-    logging.basicConfig(filename=log_file, filemode='w', format=fmt, level=log_level)
+    logging.basicConfig(filename=log_file, filemode='w+', format=fmt, level=log_level)
     init_ws_logging()
 
 
@@ -123,7 +123,12 @@ def handle_request(websocket, path):
         websocket.close()
         return
 
-    request_json = json.loads(request)
+    try:
+        request_json = json.loads(request)
+    except Exception:
+        logging.warning("Malformed JSON", exc_info=True)
+        return
+        
 
     logging.debug("Incoming request: %s", request_json)
 
@@ -133,6 +138,7 @@ def handle_request(websocket, path):
         function = request_json['function']
         args = request_json['args']
     except Exception:
+        logging.warning("Missing argument", exc_info=True)
         return
     
     if function == "tally":
