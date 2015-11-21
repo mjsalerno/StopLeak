@@ -4,6 +4,85 @@
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
+var DB_HOST = '127.0.0.1';
+var DB_PORT = '8765';
+
+/* The websocket for popup to server communication. */
+var socket = null;
+/* Deferred Object to send only when open. */
+var socketDeferred = $.Deferred();
+
+/**
+ * Parses messages received off of the WebSocket to the server.
+ *
+ * @param {object} event The event received on the WebSocket.
+ */
+function webSocketReceive(event) {
+    var message = JSON.parse(event.data);
+    switch (message.type) {
+        case 'get_counts':
+            //var results = message.value;
+            //displayCounts(results.block, results.scrub, results.allow);
+            console.log('Display action counts: ' + event.data);
+            // TODO: add counts to UI
+            break;
+        default:
+            console.log('Unsupported event: ' + message.type + ' received.');
+            break;
+    }
+}
+
+/**
+ * Setup the WebSocket connection to the server.
+ *
+ * @param {Deferred} socketDeferred Deferred Object used to send only when open.
+ * @param {function} onmessage function(event), the onmessage callback.
+ * @returns {WebSocket}
+ */
+function setupWebSocket(socketDeferred, onmessage) {
+    var socket = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
+
+    socket.onopen = function() {
+        socketDeferred.resolve();
+    };
+    socket.onerror = function(status) {
+        socketDeferred.reject(status);
+    };
+    socket.onclose = function(status) {
+        socketDeferred.reject(status);
+    };
+    socket.onmessage = onmessage;
+    return socket;
+}
+
+/**
+ * Send an async request to the server for the action counts for a list
+ * of domains.
+ *
+ * @param {object} domains List of domain name strings.
+ */
+function sendCountsRequest(domains) {
+    // Build the payload
+    var request = {
+        'function': 'get_counts',
+        'args': {
+            'domains': domains
+        }
+    };
+    var payload = JSON.stringify(request);
+
+    $.when(socketDeferred).then(
+        function() {
+            // Resolve handler, we're connected
+            console.log('Requesting counts: ' + payload);
+            socket.send(payload);
+        },
+        function(event) {
+            // Reject handler
+            console.log('WebSocket failed: ', event);
+        }
+    );
+}
 
 function getWOTString(rank) {
     var rtn;
@@ -302,6 +381,49 @@ function processRequests(requests) {
     }
 }
 
+function convertRequests(requests) {
+    var blockedRequests = {};
+    for (var id in requests) {
+        if (!requests.hasOwnProperty(id)) {
+            continue;
+        }
+        var request = requests[id];
+        // Extract the hostname
+        var url = new URL(request.url);
+        var hostname = url.hostname;
+        // Get the reason
+        var reasons = [];
+        for (var i in request.blockReasons) {
+            reasons.push(request.blockReasons[i]);
+        }
+        var extraCanidates = [url.origin, url.protocol, url.username,
+                              url.password, url.search];
+        var canidateKeys = ['<b>Origin:</b>', '<b>Protocol:</b>',
+                            '<b>Username:</b>', '<b>Password:</b>',
+                            '<b>Query Params:</b>'];
+        var extras = [];
+        for (var j in extraCanidates) {
+            if (extraCanidates[j].length > 0) {
+                extras.push(canidateKeys[j] + ' ' + extraCanidates[j]);
+            }
+        }
+
+        console.log(requests[id]);
+        // Add the details about the request
+        blockedRequests[hostname] = {
+            requestId: id,
+            reasons: reasons,
+            headers: request.requestHeaders,
+            extras: extras,
+            actions: {
+                block: 0, allow: 0, scrub: 0
+            }
+        };
+        console.log(blockedRequests);
+    }
+    return blockedRequests;
+}
+
 $(document).ready(function() {
     // Retrieve the current tabId to ask for all our blocked requests.
     var query = {active: true, currentWindow: true};
@@ -310,43 +432,7 @@ $(document).ready(function() {
         // Now just grab the requests from the background page
         chrome.runtime.getBackgroundPage(function(backgroundPage) {
             var requests = backgroundPage.getBlockedRequests(currentTab.id);
-            var blockedRequests = {};
-
-            for (var id in requests) {
-                var request = requests[id];
-                // Extract the hostname
-                var url = new URL(request.url);
-                var hostname = url.hostname;
-                // Get the reason
-                var reasons = [];
-                for (var i in request.blockReasons) {
-                    reasons.push(request.blockReasons[i]);
-                }
-                var extraCanidates = [url.origin, url.protocol, url.username,
-                                      url.password, url.search];
-                var canidateKeys = ['<b>Origin:</b>', '<b>Protocol:</b>',
-                                    '<b>Username:</b>', '<b>Password:</b>',
-                                    '<b>Query Params:</b>'];
-                var extras = [];
-                for (var j in extraCanidates) {
-                    if (extraCanidates[j].length > 0) {
-                        extras.push(canidateKeys[j] + ' ' + extraCanidates[j]);
-                    }
-                }
-
-                console.log(requests[id]);
-                // Add the details about the request
-                blockedRequests[hostname] = {
-                    requestId: id,
-                    reasons: reasons,
-                    headers: request.requestHeaders,
-                    extras: extras,
-                    actions: {
-                        block: 0, allow: 0, scrub: 0
-                    }
-                };
-                console.log(blockedRequests);
-            }
+            var blockedRequests = convertRequests(requests);
             // Display the requests in the UI
             processRequests(blockedRequests);
         });
@@ -357,3 +443,8 @@ $(document).ready(function() {
 $('.header .settings').click(function() {
     chrome.runtime.openOptionsPage();
 });
+
+socket = setupWebSocket(socketDeferred, webSocketReceive);
+
+console.log('Testing backend server...');
+sendCountsRequest(['google.com', 'github.com']);
