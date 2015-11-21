@@ -93,8 +93,9 @@ function piiInRequestUrl(request) {
  * @returns {string} The scrubbed url.
  */
 function scrubRequestUrl(request) {
-    // TODO: actually scrub url
-    return request.url;
+    var randLength = stopleak.getRandomIntInclusive(4, 20);
+    var psuedoRandomStr = stopleak.getPseudoRandomString(randLength);
+    return request.url.replace(stopleak.piiRegex, psuedoRandomStr);
 }
 
 /**

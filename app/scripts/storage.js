@@ -6,6 +6,7 @@
 
 var stopleak = stopleak || {};
 
+stopleak.piiRegex = new RegExp('()', 'gi');
 stopleak[BLOCKED_STRINGS] = [];
 stopleak[DENY] = [];
 stopleak[ALLOW] = [];
@@ -254,6 +255,15 @@ function getUserData() {
 }
 
 /**
+ * Update the regex used to match for PII data.
+ */
+function updatePiiRegex() {
+    var escapedStrs = stopleak[BLOCKED_STRINGS].map(stopleak.escapeRegExp);
+    var scrubRegex = '(' + escapedStrs.join('|') + ')';
+    stopleak.piiRegex = new RegExp(scrubRegex, 'gi');
+}
+
+/**
  * Update the user data that has changed.
  *
  * @param {Object} changes Object mapping each key that changed to its
@@ -268,6 +278,7 @@ function updateUserData(changes, areaName) {
         change = changes[BLOCKED_STRINGS];
         if (change.hasOwnProperty('newValue')) {
             stopleak[BLOCKED_STRINGS] = change.newValue || [];
+            updatePiiRegex();
         }
     }
 
