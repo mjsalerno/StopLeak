@@ -17,31 +17,6 @@ stopleak.requestFilter = {
 };
 
 function getBlockedRequests(tabId) {
-    //var blockedRequests = {
-    //    type: 'blockedRequests',
-    //    blockedRequests: {
-    //        'adds.com': {
-    //            'actions': {
-    //                'block': 345, 'allow': 500, 'scrub': 357
-    //            },
-    //            // Store like extra PII content here?
-    //            'extras': ['http://www.adds.com?user=cse509&location=USA',
-    //                'email=cse509@cs.stonybrook.edu']
-    //        },
-    //        'scottharvey.com': {
-    //            'actions': {
-    //                'block': 0, 'allow': 5000, 'scrub': 0
-    //            },
-    //            'extras': []
-    //        },
-    //        'stackoverflow.com': {
-    //            'actions': {
-    //                'block': 0, 'allow': 352, 'scrub': 5
-    //            },
-    //            'extras': ['username=cse509']
-    //        }
-    //    }
-    //};
     var blockedRequests = stopleak.tabCache.getRequests(tabId);
     console.log('[popup] requests for tab ' + tabId + ': ', blockedRequests);
     return blockedRequests;
@@ -101,10 +76,10 @@ function piiInRequestUrl(request) {
         piiFound = true;
     }
     var afterDomain = url.pathname + url.search + url.hash;
-    if (tabURL.host !== '' && afterDomain.indexOf(tabURL.host) !== -1) {
+    if (tabURL.hostname && afterDomain.indexOf(tabURL.hostname) !== -1) {
         // current hostname info is leaking in this request
         addBlockMessage(request, 'Info about the current domain (' +
-            tabURL.host + ') is present in this request.');
+            tabURL.hostname + ') is present in this request.');
         piiFound = true;
     }
     // any PII data is leaking in this request
