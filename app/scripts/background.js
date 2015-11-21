@@ -239,6 +239,7 @@ function onBeforeRequest(details) {
 function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
     var request = fullRequest(details);
     var userAction = stopleak.getReqAction(sourceOrigin, destOrigin);
+    var saveRequest = false;
     var cancel = false;
     var sanitizedHeaders = request.requestHeaders;
 
@@ -257,23 +258,25 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
             break;
         case ACTION_DENY:
             // TODO: Should we block unconditionally or only if PII is present?
-            cancel = true;
+            cancel = piiInRequest(request);
             break;
         case ACTION_UNKNOWN:
             if (piiInRequest(request)) {
                 // TODO: notify user's tab with content popup?
-                cancel = true;
+                cancel = saveRequest = true;
             }
             break;
         default:
             console.assert(false, 'Reached unreachable code!');
     }
     if (cancel) {
-        stopleak.tabCache.saveRequest(request);
+        if (saveRequest) {
+            stopleak.tabCache.saveRequest(request);
+        }
         stopleak.tabCache.incBlockCount(request.tabId);
         console.log('Cancelling request because:', request.blockReasons);
         console.log('PII found:', Object.keys(request.piiFound));
-        return {cancel: cancel};
+        return {cancel: true};
     }
     return {requestHeaders: sanitizedHeaders};
 }
