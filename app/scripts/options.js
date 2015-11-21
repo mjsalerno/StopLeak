@@ -1,9 +1,18 @@
 'use strict';
-/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting */
+/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
 
 function removeColumn(evt) {
     var element = $(evt.target);
     var parent = element.parent().parent();
+
+    var rows = parent.find('td');
+
+    delSyncStorage(CUSTOM_SETTINGS, {
+        src: $(rows[0]).html(),
+        dst: $(rows[1]).html(),
+        action: $(rows[2]).html()
+    });
+
     parent.fadeOut(400, function() {
         // Remove the item from the actual page.
         parent.parent().remove(parent);
@@ -184,7 +193,13 @@ function clearSWWL() {
 
 function clearCustSettings() {
     chrome.storage.sync.remove(CUSTOM_SETTINGS);
-    document.getElementById('cs-tbl').innerHTML = '';
+    var header = $('.header');
+    var ipt = $('#custom_input');
+    var custom = $('#custom_settings');
+    // EMpty everything and re-add it
+    custom.empty();
+    custom.append(header);
+    custom.append(ipt);
 }
 
 function addCustomSetting() {

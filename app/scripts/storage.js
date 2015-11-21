@@ -41,6 +41,9 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
                 tmp = stopleak.custSettings[map.src];
                 if (tmp.hasOwnProperty(map.dst)) {
                     delete tmp[map.dst];
+                    var newMap = {};
+                    newMap[CUSTOM_SETTINGS] = stopleak.custSettings;
+                    chrome.storage.sync.set(newMap);
                 }
             }
             break;
