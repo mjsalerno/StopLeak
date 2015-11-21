@@ -128,9 +128,13 @@ def handle_request(websocket, path):
     logging.debug("Incoming request: %s", request_json)
 
     # Extract the function name and arguments from the request
-    function = request_json['function']
-    args = request_json['args']
-
+    # If the request is malformed then we need to catch the exception and return to handle the next request
+    try:
+        function = request_json['function']
+        args = request_json['args']
+    except Exception:
+        return
+    
     if function == "tally":
         try:
             stopLeak.db.tally(**args)
