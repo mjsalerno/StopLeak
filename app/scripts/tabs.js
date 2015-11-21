@@ -33,6 +33,10 @@ TabCache.prototype.getTab = function(tabId) {
  * @param {string} url URL associated with the frame.
  */
 TabCache.prototype.updateUrl = function(tabId, frameId, url) {
+    if (frameId === 0) {
+        // Reset this tab
+        delete this.tabs[tabId];
+    }
     var tab = this.getTab(tabId);
     tab[frameId] = new URL(url);
     //console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
