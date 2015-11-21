@@ -11,7 +11,7 @@ function removeColumn(evt) {
         src: $(rows[0]).html(),
         dst: $(rows[1]).html(),
         action: $(rows[2]).html()
-    });
+    }, null);
 
     parent.fadeOut(400, function() {
         // Remove the item from the actual page.
