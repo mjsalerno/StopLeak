@@ -89,7 +89,7 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
             if (stopleak[CUSTOM_SETTINGS].hasOwnProperty(map.src)) {
                 tmp = stopleak[CUSTOM_SETTINGS][map.src];
                 if (tmp.hasOwnProperty(map.dst)) {
-                    delete tmp[map.dst];
+                    delete stopleak[CUSTOM_SETTINGS][map.src][map.dst];
                     a = {};
                     a[CUSTOM_SETTINGS] = stopleak[CUSTOM_SETTINGS];
                     chrome.storage.sync.set(a, function() {
