@@ -33,7 +33,7 @@ function buildTableRow(args) {
         row.append(col);
     }
     // Add the remove buttons
-    var removeCol = $('<td>', {
+    var rmvCol = $('<td>', {
         class: 'box',
         css: {
             'text-align': 'center'
@@ -44,11 +44,11 @@ function buildTableRow(args) {
         title: 'remove'
     });
     // Attach the onclick action
-    removeCol.click(removeColumn);
+    removeIcon.click(removeColumn);
     // Add icons to columns
-    removeCol.append(removeIcon);
+    rmvCol.append(removeIcon);
     // Add edit and remove buttons
-    row.append(removeCol);
+    row.append(rmvCol);
     // Add the new row to the table
     customSettings.before(row);
 }
@@ -217,11 +217,7 @@ function addCustomSetting() {
         action: action.val()
     };
 
-    updateSyncSetting(CUSTOM_SETTINGS, {
-        dst: dst.val(),
-        src: src.val(),
-        action: action.val()
-    }, buildTableRow, args);
+    updateSyncSetting(CUSTOM_SETTINGS, args, buildTableRow, args);
 
     // Add the row to the table
     // buildTableRow(src.val(), dst.val(), action.val());
