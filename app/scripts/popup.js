@@ -259,33 +259,25 @@ function updateUI(request, requests) {
     getAlexaRank(hostname, alexa);
 }
 
-function recvMessage(msg) {
-    // This is where the stuff you want from the background page will be
-    // console.log(response);
-    if (msg.type === 'blockedRequests') {
-        // Begin iterating over the returned results
-        var requests = msg.blockedRequests;
-        for (var request in requests) {
-            if (!requests.hasOwnProperty(request)) {
-                continue;
-            }
-            updateUI(request, requests);
+function processRequests(requests) {
+    for (var request in requests) {
+        if (!requests.hasOwnProperty(request)) {
+            continue;
         }
+        updateUI(request, requests);
     }
-
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var port = chrome.runtime.connect({name: 'blockedRequests'});
-    port.onMessage.addListener(recvMessage);
     // Retrieve the current tabId to ask for all our blocked requests.
     var query = {active: true, currentWindow: true};
     chrome.tabs.query(query, function(tabs) {
         var currentTab = tabs[0];
-        console.log(currentTab);
-        var msg = {type: 'blockedRequests', tabId: currentTab.id};
-        port.postMessage(msg);
-        console.log('[messaging] sending to background: ', msg);
+        // Now just grab the requests from the background page
+        chrome.runtime.getBackgroundPage(function(backgroundPage) {
+            var requests = backgroundPage.getBlockedRequests(currentTab.id);
+            processRequests(requests);
+        });
     });
 });
 

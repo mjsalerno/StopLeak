@@ -43,34 +43,9 @@ function getBlockedRequests(tabId) {
     //    }
     //};
     var blockedRequests = stopleak.tabCache.getRequests(tabId);
-    console.log('[messaging] send requests for tab ' + tabId + ': ',
-        blockedRequests);
+    console.log('[popup] requests for tab ' + tabId + ': ', blockedRequests);
     return blockedRequests;
 }
-
-/**
- * The popup is connecting to us, add a message handler.
- *
- * @param {Object} port Chrome messaging port.
- */
-function connectListener(port) {
-    // Only support the blockedRequests named port.
-    console.log('[messaging] popup is connecting to us!');
-    console.assert(port.name === 'blockedRequests');
-    port.onMessage.addListener(function(msg) {
-        console.log('[messaging] received from the popup: ', msg);
-        if (msg.type === 'blockedRequests') {
-            var resp = getBlockedRequests(msg.tabId);
-            port.postMessage(resp);
-            console.log('[messaging] sent response to the popup: ', resp);
-        } else if (msg.type === 'option_selected') {
-            console.log('User decided to ' + msg.option + ' for ' +
-                msg.hostname);
-        }
-    });
-}
-
-chrome.runtime.onConnect.addListener(connectListener);
 
 chrome.runtime.onInstalled.addListener(function(details) {
     console.log('previousVersion', details.previousVersion);
