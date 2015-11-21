@@ -1,3 +1,7 @@
+#custom_settings td {
+    text-align: center;
+}
+
 .edit {
     color: orange;
 }

@@ -134,9 +134,10 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
     }
 }
 
-function addSetting(setting, map, onsuccess, args, onError, arge) {
+function updateSyncSetting(setting, map, onsuccess, argss, onError, argse) {
+
     if (!stopleak.hasOwnProperty(setting)) {
-        onError(args);
+        onError(argss);
         console.log('storage: could not find that setting: ' + setting);
         return;
     }
@@ -144,16 +145,16 @@ function addSetting(setting, map, onsuccess, args, onError, arge) {
     switch (setting) {
         case CUSTOM_SETTINGS:
             chrome.storage.sync.get(null, function(items) {
-
                 var custSett = items[CUSTOM_SETTINGS] || {};
                 var inCustSett = custSett[map.src] || {};
+
                 inCustSett[map.dst] = map.action;
                 custSett[map.src] = inCustSett;
                 items[CUSTOM_SETTINGS] = custSett;
 
                 chrome.storage.sync.set(items, function() {
                     if (onsuccess !== null) {
-                        onsuccess();
+                        onsuccess(argss);
                     }
                 });
             });
@@ -169,7 +170,7 @@ function addSetting(setting, map, onsuccess, args, onError, arge) {
         /* falls through */
         case BLOCKED_STRINGS:
             if (!map.val) {
-                onError(arge);
+                onError(argse);
                 console.log('storage: missing key in map, val');
                 return;
             }
@@ -182,13 +183,12 @@ function addSetting(setting, map, onsuccess, args, onError, arge) {
             var a  = {};
             a[setting] = stopleak[setting];
             chrome.storage.sync.set(a, function() {
-                onsuccess(args);
+                onsuccess(argss);
             });
             break;
-
         default:
             console.log('do not know how to get: ' + setting);
-            onerror(arge);
+            onerror(argse);
             break;
     }
 }
