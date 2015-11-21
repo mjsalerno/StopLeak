@@ -72,7 +72,9 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
     var tmp;
     var a;
     if (!stopleak.hasOwnProperty(setting)) {
-        onError(args);
+        if (onError !== null) {
+            onError(arge);
+        }
         console.log('storage: could not find that setting: ' + setting);
         return;
     }
@@ -91,7 +93,9 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
                     a = {};
                     a[CUSTOM_SETTINGS] = stopleak[CUSTOM_SETTINGS];
                     chrome.storage.sync.set(a, function() {
-                        onSuccess(args);
+                        if (onSuccess !== null) {
+                            onSuccess(args);
+                        }
                     });
                 } else {
                     onError(arge);
