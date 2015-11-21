@@ -14,31 +14,6 @@ stopleak.requestFilter = {
 };
 
 function getBlockedRequests(tabId) {
-    //var blockedRequests = {
-    //    type: 'blockedRequests',
-    //    blockedRequests: {
-    //        'adds.com': {
-    //            'actions': {
-    //                'block': 345, 'allow': 500, 'scrub': 357
-    //            },
-    //            // Store like extra PII content here?
-    //            'extras': ['http://www.adds.com?user=cse509&location=USA',
-    //                'email=cse509@cs.stonybrook.edu']
-    //        },
-    //        'scottharvey.com': {
-    //            'actions': {
-    //                'block': 0, 'allow': 5000, 'scrub': 0
-    //            },
-    //            'extras': []
-    //        },
-    //        'stackoverflow.com': {
-    //            'actions': {
-    //                'block': 0, 'allow': 352, 'scrub': 5
-    //            },
-    //            'extras': ['username=cse509']
-    //        }
-    //    }
-    //};
     var blockedRequests = stopleak.tabCache.getRequests(tabId);
     console.log('[popup] requests for tab ' + tabId + ': ', blockedRequests);
     return blockedRequests;
