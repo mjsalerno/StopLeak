@@ -58,15 +58,15 @@ function getSyncStorage(setting) {
     return rtn;
 }
 
-/*
+/**
  * deletes one of the settings.
  *
  * @param {String} setting setting one of the constants (e.g. CUSTOM_SETTINGS)
  * @param {Object} map the values of the
- * @param {Function} onSuccess
- * @param {Object} args
- * @param {Function} onError
- * @param {Object} arge
+ * @param {Function} onSuccess a function to call once this succeeded
+ * @param {Object} args the args to pass to the onSuccess function
+ * @param {Function} onError a function to call if this fails
+ * @param {Object} arge the args to pass to the onSuccess function
  */
 function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
     var tmp;
