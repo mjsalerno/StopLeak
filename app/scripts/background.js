@@ -268,6 +268,7 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
             console.assert(false, 'Reached unreachable code!');
     }
     if (cancel) {
+        stopleak.tabCache.saveRequest(request);
         stopleak.tabCache.incBlockCount(request.tabId);
         console.log('Cancelling request because:', request.blockReasons);
         console.log('PII found:', Object.keys(request.piiFound));
