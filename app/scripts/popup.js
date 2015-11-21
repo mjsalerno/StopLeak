@@ -278,7 +278,15 @@ function recvMessage(msg) {
 document.addEventListener('DOMContentLoaded', function() {
     var port = chrome.runtime.connect({name: 'blockedRequests'});
     port.onMessage.addListener(recvMessage);
-    port.postMessage({type: 'blockedRequests'});
+    // Retrieve the current tabId to ask for all our blocked requests.
+    var query = {active: true, currentWindow: true};
+    chrome.tabs.query(query, function(tabs) {
+        var currentTab = tabs[0];
+        console.log(currentTab);
+        var msg = {type: 'blockedRequests', tabId: currentTab.id};
+        port.postMessage(msg);
+        console.log('[messaging] sending to background: ', msg);
+    });
 });
 
 /* Add the options page js to the button */
