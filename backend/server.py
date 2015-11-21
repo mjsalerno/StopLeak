@@ -120,6 +120,7 @@ def handle_request(websocket, path):
 
     request = yield from websocket.recv()
     if not request:
+        logging.debug('Closing socket.')
         websocket.close()
         return
 
