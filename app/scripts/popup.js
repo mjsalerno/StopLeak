@@ -122,6 +122,7 @@ function updateUI(request, requests) {
     // Extract actions
     var hostname = request;
     var actions = null;
+    console.log();
     if ('actions' in requests[request]) {
         actions = calculateStats(requests[request].actions);
     } else {
@@ -227,9 +228,19 @@ function updateUI(request, requests) {
             host.append(arrow);
             host.prop('title',
                       'Click for a more detailed analysis');
+            // extras.append('<br />');
+            // Add basic url information
+            extras.append('<h3>Info</h3>');
             for (var extra in exList) {
                 extras.append(exList[extra]);
                 extras.append('<br />');
+            }
+            // Add the headers
+            extras.append('<h3>Headers</h3>');
+            var headers = requests[request].headers;
+            for (var header in headers) {
+                extras.append('<b>' + headers[header].name + '</b>: ' +
+                              headers[header].value + '<br />');
             }
             // Add the extras click handler
             host.click(showExtras);
@@ -268,7 +279,7 @@ function processRequests(requests) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     // Retrieve the current tabId to ask for all our blocked requests.
     var query = {active: true, currentWindow: true};
     chrome.tabs.query(query, function(tabs) {
@@ -276,7 +287,45 @@ document.addEventListener('DOMContentLoaded', function() {
         // Now just grab the requests from the background page
         chrome.runtime.getBackgroundPage(function(backgroundPage) {
             var requests = backgroundPage.getBlockedRequests(currentTab.id);
-            processRequests(requests);
+            var blockedRequests = {};
+
+            for (var id in requests) {
+                var request = requests[id];
+                // Extract the hostname
+                var url = new URL(request.url);
+                var hostname = url.hostname;
+                // Get the reason
+                var reasons = [];
+                for (var i in request.blockReasons) {
+                    reasons.push(request.blockReasons[i]);
+                }
+                var extraCanidates = [url.origin, url.protocol, url.username,
+                                      url.password, url.search];
+                var canidateKeys = ['<b>Origin:</b>', '<b>Protocol:</b>',
+                                    '<b>Username:</b>', '<b>Password:</b>',
+                                    '<b>Query Params:</b>'];
+                var extras = [];
+                for (var j in extraCanidates) {
+                    if (extraCanidates[j].length > 0) {
+                        extras.push(canidateKeys[j] + ' ' + extraCanidates[j]);
+                    }
+                }
+
+                console.log(requests[id]);
+                // Add the details about the request
+                blockedRequests[hostname] = {
+                    requestId: id,
+                    reasons: reasons,
+                    headers: request.requestHeaders,
+                    extras: extras,
+                    actions: {
+                        block: 0, allow: 0, scrub: 0
+                    }
+                };
+                console.log(blockedRequests);
+            }
+            // Display the requests in the UI
+            processRequests(blockedRequests);
         });
     });
 });
