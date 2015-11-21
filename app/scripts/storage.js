@@ -138,10 +138,12 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
     }
 }
 
-function updateSyncSetting(setting, map, onsuccess, argss, onError, argse) {
+function updateSyncSetting(setting, map, onsuccess, onError) {
 
     if (!stopleak.hasOwnProperty(setting)) {
-        onError(argss);
+        if (onError !== null) {
+            onError();
+        }
         console.log('storage: could not find that setting: ' + setting);
         return;
     }
@@ -158,13 +160,16 @@ function updateSyncSetting(setting, map, onsuccess, argss, onError, argse) {
 
                 chrome.storage.sync.set(items, function() {
                     if (onsuccess !== null) {
-                        onsuccess(argss);
+                        onsuccess();
                     }
                 });
             });
             break;
 
-        case ALLOW:
+        case BLOCKED_STRINGS:
+            if (map.val) {
+                map.val = map.val.toLocaleLowerCase();
+            }
         /* falls through */
         case SCRUB:
         /* falls through */
@@ -172,9 +177,11 @@ function updateSyncSetting(setting, map, onsuccess, argss, onError, argse) {
         /* falls through */
         case SWWL:
         /* falls through */
-        case BLOCKED_STRINGS:
+        case ALLOW:
             if (!map.val) {
-                onError(argse);
+                if (onError !== null) {
+                    onError();
+                }
                 console.log('storage: missing key in map, val');
                 return;
             }
@@ -187,12 +194,14 @@ function updateSyncSetting(setting, map, onsuccess, argss, onError, argse) {
             var a  = {};
             a[setting] = stopleak[setting];
             chrome.storage.sync.set(a, function() {
-                onsuccess(argss);
+                if (onsuccess !== null) {
+                    onsuccess();
+                }
             });
             break;
         default:
             console.log('do not know how to get: ' + setting);
-            onerror(argse);
+            onerror();
             break;
     }
 }
