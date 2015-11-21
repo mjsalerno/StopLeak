@@ -133,7 +133,11 @@ function addSetting(inId, tblId, key) {
     if (!newFilter) {
         return;
     }
-    chrome.storage.sync.get(null, function(items) {
+
+    updateSyncSetting(key, {val: newFilter}, function() {
+        refreshSetting(tblId, key);
+    },  null);
+    /*chrome.storage.sync.get(null, function(items) {
         var filters = [];
         if (items[key]) {
             filters = items[key];
@@ -147,7 +151,7 @@ function addSetting(inId, tblId, key) {
         chrome.storage.sync.set(a, function() {
             refreshSetting(tblId, key);
         });
-    });
+    });*/
 }
 
 function addActions() {
@@ -217,7 +221,9 @@ function addCustomSetting() {
         action: action.val()
     };
 
-    updateSyncSetting(CUSTOM_SETTINGS, args, buildTableRow, args);
+    updateSyncSetting(CUSTOM_SETTINGS, args, function() {
+        buildTableRow(args);
+    }, null);
 
     // Add the row to the table
     // buildTableRow(src.val(), dst.val(), action.val());
