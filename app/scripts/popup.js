@@ -1,5 +1,5 @@
 'use strict';
-/*global $, chrome, document, updateSyncSetting, BLOCKED_STRINGS, DENY, SCRUB, ACTION_UNKNOWN*/
+/*global $, chrome, document, updateSyncSetting, ALLOW, DENY, SCRUB, ACTION_UNKNOWN*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
@@ -158,7 +158,7 @@ function getWOTRank(url, element) {
 function optionToStorage(option) {
     switch (option) {
         case 'allow':
-            return BLOCKED_STRINGS;
+            return ALLOW;
         case 'scrub':
             return SCRUB;
         case 'block':
