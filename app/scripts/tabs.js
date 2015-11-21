@@ -50,6 +50,16 @@ TabCache.prototype.saveRequest = function(request) {
 };
 
 /**
+ * Get all requests that were blocked by us, so the user can see it later.
+ *
+ * @param {object} tabId ID of the tab.
+ */
+TabCache.prototype.getRequests = function(tabId) {
+    var tab = this.getTab(tabId);
+    return tab.requests;
+};
+
+/**
  * Delete a request that was blocked. Called after the user chooses an option.
  *
  * @param {number} tabId ID of the tab.
