@@ -19,7 +19,8 @@ var TabCache = function() {
  */
 TabCache.prototype.getTab = function(tabId) {
     if (!this.tabs.hasOwnProperty(tabId)) {
-        this.tabs[tabId] = {blocks: 0};
+        // requests: Maps requestsId's to requests
+        this.tabs[tabId] = {blocks: 0, requests: {}};
     }
     return this.tabs[tabId];
 };
@@ -36,6 +37,27 @@ TabCache.prototype.updateUrl = function(tabId, frameId, url) {
     tab[frameId] = new URL(url);
     //console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
     //    tab[frameId].origin);
+};
+
+/**
+ * Save a request that was blocked by us, so the user can see it later.
+ *
+ * @param {object} request The blocked request to save, has a 'tabId'.
+ */
+TabCache.prototype.saveRequest = function(request) {
+    var tab = this.getTab(request.tabId);
+    tab.requests[request.requestId] = request;
+};
+
+/**
+ * Delete a request that was blocked. Called after the user chooses an option.
+ *
+ * @param {number} tabId ID of the tab.
+ * @param {object} requestId The ID of the blocked request to delete.
+ */
+TabCache.prototype.delRequest = function(tabId, requestId) {
+    var tab = this.getTab(tabId);
+    delete tab.requests[requestId];
 };
 
 /**
