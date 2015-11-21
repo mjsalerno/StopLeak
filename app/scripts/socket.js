@@ -29,11 +29,11 @@ function setupWebSocket(socketDeferred) {
     socket.onopen = function() {
         socketDeferred.resolve();
     };
-    socket.onerror = function() {
-        socketDeferred.reject();
+    socket.onerror = function(status) {
+        socketDeferred.reject(status);
     };
-    socket.onclose = function() {
-        socketDeferred.reject();
+    socket.onclose = function(status) {
+        socketDeferred.reject(status);
     };
     socket.onmessage = webSocketReceive;
     return socket;
@@ -57,9 +57,9 @@ function sendCountsRequest(domains) {
             console.log('Requesting counts: ' + payload);
             socket.send(payload);
         },
-        function(status) {
+        function(event) {
             // Reject handler
-            console.log('Socket failed: ', status);
+            console.log('WebSocket failed: ', event);
         }
     );
 }
