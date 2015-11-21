@@ -19,6 +19,16 @@ const ACTION_SCRUB = 'scrub';
 const ACTION_UNKNOWN = 'unknown';
 
 /**
+ * Checks if an object has no keys
+ *
+ * @param {Object} obj the object to check
+ * @returns {boolean}
+ */
+function isEmpty(obj) {
+    return Object.keys(obj).length === 0;
+}
+
+/**
  * Gets the settings from the in mem storage, formats the
  * cust settings as a list so the UI can easily read it.
  *
@@ -64,16 +74,14 @@ function getSyncStorage(setting) {
  * @param {String} setting setting one of the constants (e.g. CUSTOM_SETTINGS)
  * @param {Object} map the values of the
  * @param {Function} onSuccess a function to call once this succeeded
- * @param {Object} args the args to pass to the onSuccess function
  * @param {Function} onError a function to call if this fails
- * @param {Object} arge the args to pass to the onSuccess function
  */
-function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
+function delSyncStorage(setting, map, onSuccess, onError) {
     var tmp;
     var a;
     if (!stopleak.hasOwnProperty(setting)) {
         if (onError !== null) {
-            onError(arge);
+            onError();
         }
         console.log('storage: could not find that setting: ' + setting);
         return;
@@ -83,6 +91,9 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
         case CUSTOM_SETTINGS:
             if (!map.src || !map.dst || !map.action) {
                 console.log('storage: missing arg in map (src/dst/action)');
+                if (onError !== null) {
+                    onError();
+                }
                 return;
             }
 
@@ -90,15 +101,20 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
                 tmp = stopleak[CUSTOM_SETTINGS][map.src];
                 if (tmp.hasOwnProperty(map.dst)) {
                     delete stopleak[CUSTOM_SETTINGS][map.src][map.dst];
+                    if (isEmpty(stopleak[CUSTOM_SETTINGS][map.src])) {
+                        delete stopleak[CUSTOM_SETTINGS][map.src];
+                    }
                     a = {};
                     a[CUSTOM_SETTINGS] = stopleak[CUSTOM_SETTINGS];
                     chrome.storage.sync.set(a, function() {
                         if (onSuccess !== null) {
-                            onSuccess(args);
+                            onSuccess();
                         }
                     });
                 } else {
-                    onError(arge);
+                    if (onError !== null) {
+                        onError();
+                    }
                 }
             }
             break;
@@ -113,13 +129,13 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
             /* falls through */
         case BLOCKED_STRINGS:
             if (!map.val) {
-                onError(arge);
+                onError();
                 console.log('storage: missing key in map, val');
                 return;
             }
 
             if (stopleak[setting].indexOf(map.val) > -1) {
-                onError(arge);
+                onError();
                 return;
             }
 
@@ -127,18 +143,26 @@ function delSyncStorage(setting, map, onSuccess, args, onError, arge) {
             a  = {};
             a[setting] = stopleak[setting];
             chrome.storage.sync.set(a, function() {
-                onSuccess(args);
+                onSuccess();
             });
             break;
 
         default:
             console.log('do not know how to get: ' + setting);
-            onerror(arge);
+            onerror();
             break;
     }
 }
 
-function updateSyncSetting(setting, map, onsuccess, onError) {
+/**
+ * Appends a setting to an existing setting
+ *
+ * @param {String} setting the settings key to modify (e.g. CUSTOM_SETTINGS)
+ * @param {Object} map the map containing the setting to be added.
+ * @param {Function} onSuccess a function to call if this succeeds
+ * @param {Function} onError a function to call if this fails
+ */
+function updateSyncSetting(setting, map, onSuccess, onError) {
 
     if (!stopleak.hasOwnProperty(setting)) {
         if (onError !== null) {
@@ -159,31 +183,31 @@ function updateSyncSetting(setting, map, onsuccess, onError) {
                 items[CUSTOM_SETTINGS] = custSett;
 
                 chrome.storage.sync.set(items, function() {
-                    if (onsuccess !== null) {
-                        onsuccess();
+                    if (onSuccess !== null) {
+                        onSuccess();
                     }
                 });
             });
             break;
 
-        case BLOCKED_STRINGS:
-            if (map.val) {
-                map.val = map.val.toLocaleLowerCase();
-            }
+        case ALLOW:
         /* falls through */
         case SCRUB:
         /* falls through */
         case DENY:
         /* falls through */
         case SWWL:
+            // if not BLOCKED_STRINGS and not CUSTOM_SETTINGS
         /* falls through */
-        case ALLOW:
+        case BLOCKED_STRINGS:
             if (!map.val) {
                 if (onError !== null) {
                     onError();
                 }
                 console.log('storage: missing key in map, val');
                 return;
+            } else {
+                map.val = map.val.toLocaleLowerCase();
             }
 
             if (stopleak[setting].indexOf(map.val) > -1) {
@@ -194,14 +218,16 @@ function updateSyncSetting(setting, map, onsuccess, onError) {
             var a  = {};
             a[setting] = stopleak[setting];
             chrome.storage.sync.set(a, function() {
-                if (onsuccess !== null) {
-                    onsuccess();
+                if (onSuccess !== null) {
+                    onSuccess();
                 }
             });
             break;
         default:
             console.log('do not know how to get: ' + setting);
-            onerror();
+            if (onError !== null) {
+                onError();
+            }
             break;
     }
 }
@@ -312,19 +338,19 @@ stopleak.getReqAction = function(src, dst) {
         }
     }
 
-    //check deny list
-    len = stopleak[DENY].length;
-    for (i = 0; i < len; i++) {
-        if (stopleak[DENY][i] === dst) {
-            return ACTION_DENY;
-        }
-    }
-
     //check SWWL
     len = stopleak[SWWL].length;
     for (i = 0; i < len; i++) {
         if (stopleak[SWWL][i] === src) {
             return ACTION_ALLOW;
+        }
+    }
+
+    //check deny list
+    len = stopleak[DENY].length;
+    for (i = 0; i < len; i++) {
+        if (stopleak[DENY][i] === dst) {
+            return ACTION_DENY;
         }
     }
 
