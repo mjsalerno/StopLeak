@@ -2,64 +2,6 @@
 /* global chrome, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN,
     BLOCKED_STRINGS */
 
-function getBlockedRequests() {
-    // TODO: Actually collect the blocked requests to send to the popup
-    var blockedRequests = {
-        type: 'blockedRequests',
-        blockedRequests: {
-            'adds.com': {
-                'actions': {
-                    'block': 345, 'allow': 500, 'scrub': 357
-                },
-                // Store like extra PII content here?
-                'extras': ['http://www.adds.com?user=cse509&location=USA',
-                    'email=cse509@cs.stonybrook.edu']
-            },
-            'scottharvey.com': {
-                'actions': {
-                    'block': 0, 'allow': 5000, 'scrub': 0
-                },
-                'extras': []
-            },
-            'stackoverflow.com': {
-                'actions': {
-                    'block': 0, 'allow': 352, 'scrub': 5
-                },
-                'extras': ['username=cse509']
-            }
-        }
-    };
-    return blockedRequests;
-}
-
-/**
- * The popup is connecting to us, add a message handler.
- *
- * @param {Object} port Chrome messaging port.
- */
-function connectListener(port) {
-    // Only support the blockedRequests named port.
-    console.log('[messaging] popup is connecting to us!');
-    console.assert(port.name === 'blockedRequests');
-    port.onMessage.addListener(function(msg) {
-        console.log('[messaging] received from the popup: ', msg);
-        if (msg.type === 'blockedRequests') {
-            var resp = getBlockedRequests();
-            port.postMessage(resp);
-            console.log('[messaging] sent response to the popup: ', resp);
-        } else if (msg.type === 'option_selected') {
-            console.log('User decided to ' + msg.option + ' for ' +
-                msg.hostname);
-        }
-    });
-}
-
-chrome.runtime.onConnect.addListener(connectListener);
-
-chrome.runtime.onInstalled.addListener(function(details) {
-    console.log('previousVersion', details.previousVersion);
-});
-
 /**
  * StopLeak namespace.
  * @namespace
@@ -73,6 +15,41 @@ stopleak.requests = {};
 stopleak.requestFilter = {
     urls: ['<all_urls>']
 };
+
+function getBlockedRequests(tabId) {
+    //var blockedRequests = {
+    //    type: 'blockedRequests',
+    //    blockedRequests: {
+    //        'adds.com': {
+    //            'actions': {
+    //                'block': 345, 'allow': 500, 'scrub': 357
+    //            },
+    //            // Store like extra PII content here?
+    //            'extras': ['http://www.adds.com?user=cse509&location=USA',
+    //                'email=cse509@cs.stonybrook.edu']
+    //        },
+    //        'scottharvey.com': {
+    //            'actions': {
+    //                'block': 0, 'allow': 5000, 'scrub': 0
+    //            },
+    //            'extras': []
+    //        },
+    //        'stackoverflow.com': {
+    //            'actions': {
+    //                'block': 0, 'allow': 352, 'scrub': 5
+    //            },
+    //            'extras': ['username=cse509']
+    //        }
+    //    }
+    //};
+    var blockedRequests = stopleak.tabCache.getRequests(tabId);
+    console.log('[popup] requests for tab ' + tabId + ': ', blockedRequests);
+    return blockedRequests;
+}
+
+chrome.runtime.onInstalled.addListener(function(details) {
+    console.log('previousVersion', details.previousVersion);
+});
 
 /**
  * Add message to the list of reasons to block this request.

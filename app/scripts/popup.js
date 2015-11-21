@@ -4,20 +4,99 @@
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
+var DB_HOST = '127.0.0.1';
+var DB_PORT = '8765';
+
+/* The websocket for popup to server communication. */
+var socket = null;
+/* Deferred Object to send only when open. */
+var socketDeferred = $.Deferred();
+
+/**
+ * Parses messages received off of the WebSocket to the server.
+ *
+ * @param {object} event The event received on the WebSocket.
+ */
+function webSocketReceive(event) {
+    var message = JSON.parse(event.data);
+    switch (message.type) {
+        case 'get_counts':
+            //var results = message.value;
+            //displayCounts(results.block, results.scrub, results.allow);
+            console.log('Display action counts: ' + event.data);
+            // TODO: add counts to UI
+            break;
+        default:
+            console.log('Unsupported event: ' + message.type + ' received.');
+            break;
+    }
+}
+
+/**
+ * Setup the WebSocket connection to the server.
+ *
+ * @param {Deferred} socketDeferred Deferred Object used to send only when open.
+ * @param {function} onmessage function(event), the onmessage callback.
+ * @returns {WebSocket}
+ */
+function setupWebSocket(socketDeferred, onmessage) {
+    var socket = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
+
+    socket.onopen = function() {
+        socketDeferred.resolve();
+    };
+    socket.onerror = function(status) {
+        socketDeferred.reject(status);
+    };
+    socket.onclose = function(status) {
+        socketDeferred.reject(status);
+    };
+    socket.onmessage = onmessage;
+    return socket;
+}
+
+/**
+ * Send an async request to the server for the action counts for a list
+ * of domains.
+ *
+ * @param {object} domains List of domain name strings.
+ */
+function sendCountsRequest(domains) {
+    // Build the payload
+    var request = {
+        'function': 'get_counts',
+        'args': {
+            'domains': domains
+        }
+    };
+    var payload = JSON.stringify(request);
+
+    $.when(socketDeferred).then(
+        function() {
+            // Resolve handler, we're connected
+            console.log('Requesting counts: ' + payload);
+            socket.send(payload);
+        },
+        function(event) {
+            // Reject handler
+            console.log('WebSocket failed: ', event);
+        }
+    );
+}
 
 function getWOTString(rank) {
     var rtn;
 
     if (rank >= 80) {
-        rtn = 'Excellent';
+        rtn = ['Excellent', 'images/30_excellent.png'];
     } else if (rank >= 60) {
-        rtn = 'Good';
+        rtn = ['Good', 'images/30_good.png'];
     } else if (rank >= 40) {
-        rtn = 'Unsatisfactory';
+        rtn = ['Unsatisfactory', 'images/30_unsatisfactory.png'];
     } else if (rank >= 20) {
-        rtn = 'Poor';
+        rtn = ['Poor', 'images/30_poor.png'];
     } else {
-        rtn = 'Very poor';
+        rtn = ['Very poor', 'images/30_verypoor.png'];
     }
 
     return rtn;
@@ -54,7 +133,13 @@ function getWOTRank(url, element) {
                 element.html(' WOT: None');
             } else {
                 var rank = data[url][0][0];
-                element.html(' WOT: ' + getWOTString(rank));
+                var wot = getWOTString(rank);
+                element.html(' WOT: ' + wot[0]);
+                var icon = $('<img>', {
+                    src: wot[1],
+                    alt: wot[0]
+                });
+                element.append(icon);
             }
         },
         error: function() {
@@ -122,6 +207,7 @@ function updateUI(request, requests) {
     // Extract actions
     var hostname = request;
     var actions = null;
+    console.log();
     if ('actions' in requests[request]) {
         actions = calculateStats(requests[request].actions);
     } else {
@@ -227,9 +313,19 @@ function updateUI(request, requests) {
             host.append(arrow);
             host.prop('title',
                       'Click for a more detailed analysis');
+            // extras.append('<br />');
+            // Add basic url information
+            extras.append('<h3>Info</h3>');
             for (var extra in exList) {
                 extras.append(exList[extra]);
                 extras.append('<br />');
+            }
+            // Add the headers
+            extras.append('<h3>Headers</h3>');
+            var headers = requests[request].headers;
+            for (var header in headers) {
+                extras.append('<b>' + headers[header].name + '</b>: ' +
+                              headers[header].value + '<br />');
             }
             // Add the extras click handler
             host.click(showExtras);
@@ -259,29 +355,79 @@ function updateUI(request, requests) {
     getAlexaRank(hostname, alexa);
 }
 
-function recvMessage(msg) {
-    // This is where the stuff you want from the background page will be
-    // console.log(response);
-    if (msg.type === 'blockedRequests') {
-        // Begin iterating over the returned results
-        var requests = msg.blockedRequests;
-        for (var request in requests) {
-            if (!requests.hasOwnProperty(request)) {
-                continue;
-            }
-            updateUI(request, requests);
+function processRequests(requests) {
+    for (var request in requests) {
+        if (!requests.hasOwnProperty(request)) {
+            continue;
         }
+        updateUI(request, requests);
     }
-
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var port = chrome.runtime.connect({name: 'blockedRequests'});
-    port.onMessage.addListener(recvMessage);
-    port.postMessage({type: 'blockedRequests'});
+function convertRequests(requests) {
+    var blockedRequests = {};
+    for (var id in requests) {
+        if (!requests.hasOwnProperty(id)) {
+            continue;
+        }
+        var request = requests[id];
+        // Extract the hostname
+        var url = new URL(request.url);
+        var hostname = url.hostname;
+        // Get the reason
+        var reasons = [];
+        for (var i in request.blockReasons) {
+            reasons.push(request.blockReasons[i]);
+        }
+        var extraCanidates = [url.origin, url.protocol, url.username,
+                              url.password, url.search];
+        var canidateKeys = ['<b>Origin:</b>', '<b>Protocol:</b>',
+                            '<b>Username:</b>', '<b>Password:</b>',
+                            '<b>Query Params:</b>'];
+        var extras = [];
+        for (var j in extraCanidates) {
+            if (extraCanidates[j].length > 0) {
+                extras.push(canidateKeys[j] + ' ' + extraCanidates[j]);
+            }
+        }
+
+        console.log(requests[id]);
+        // Add the details about the request
+        blockedRequests[hostname] = {
+            requestId: id,
+            reasons: reasons,
+            headers: request.requestHeaders,
+            extras: extras,
+            actions: {
+                block: 0, allow: 0, scrub: 0
+            }
+        };
+        console.log(blockedRequests);
+    }
+    return blockedRequests;
+}
+
+$(document).ready(function() {
+    // Retrieve the current tabId to ask for all our blocked requests.
+    var query = {active: true, currentWindow: true};
+    chrome.tabs.query(query, function(tabs) {
+        var currentTab = tabs[0];
+        // Now just grab the requests from the background page
+        chrome.runtime.getBackgroundPage(function(backgroundPage) {
+            var requests = backgroundPage.getBlockedRequests(currentTab.id);
+            var blockedRequests = convertRequests(requests);
+            // Display the requests in the UI
+            processRequests(blockedRequests);
+        });
+    });
 });
 
 /* Add the options page js to the button */
 $('.header .settings').click(function() {
     chrome.runtime.openOptionsPage();
 });
+
+socket = setupWebSocket(socketDeferred, webSocketReceive);
+
+console.log('Testing backend server...');
+sendCountsRequest(['google.com', 'github.com']);
