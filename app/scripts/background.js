@@ -124,7 +124,7 @@ function piiInRequestUrl(request) {
         piiFound = true;
     }
     var afterDomain = url.pathname + url.search + url.hash;
-    if (afterDomain.indexOf(tabURL.host) !== -1) {
+    if (tabURL.host !== '' && afterDomain.indexOf(tabURL.host) !== -1) {
         // current hostname info is leaking in this request
         addBlockMessage(request, 'Info about the current domain (' +
             tabURL.host + ') is present in this request.');
@@ -261,7 +261,7 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
             break;
         case ACTION_UNKNOWN:
             if (piiInRequest(request)) {
-                // TODO: notify user's tab.
+                // TODO: notify user's tab with content popup?
                 cancel = true;
             }
             break;

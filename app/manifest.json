@@ -34,18 +34,6 @@
     "chrome_style": true,
     "open_in_tab": true
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "scripts/contentscript.js"
-      ],
-      "run_at": "document_start"
-    }
-  ],
   "permissions": [
     "tabs",
     "http://*/*",
