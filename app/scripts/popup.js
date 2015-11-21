@@ -1,5 +1,5 @@
 'use strict';
-/*global $, chrome, document, updateSyncSetting, BLOCKED_STRINGS, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN*/
+/*global $, chrome, document, updateSyncSetting, ALLOW, DENY, SCRUB, ACTION_UNKNOWN*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
@@ -158,11 +158,11 @@ function getWOTRank(url, element) {
 function optionToStorage(option) {
     switch (option) {
         case 'allow':
-            return BLOCKED_STRINGS;
+            return ALLOW;
         case 'scrub':
-            return ACTION_SCRUB;
-        case 'deny':
-            return ACTION_DENY;
+            return SCRUB;
+        case 'block':
+            return DENY;
         default:
             return ACTION_UNKNOWN;
     }
@@ -171,10 +171,6 @@ function optionToStorage(option) {
 function fade(e) {
     var element = $(e.target);
     var parent = element.parent().parent().parent();
-    parent.fadeOut(400, function() {
-        // Remove the item from the actual page.
-        parent.parent().remove(parent);
-    });
     // Get the type of option selected
     var option = element.parent().attr('title');
     var origin = parent.find('.hostname').data('origin');
@@ -185,7 +181,12 @@ function fade(e) {
                                   option: option,
                                   hostname: origin});
 
-    updateSyncSetting(optionToStorage(option), {val: origin}, null, null);
+    updateSyncSetting(optionToStorage(option), {val: origin}, function() {
+        parent.fadeOut(400, function() {
+            // Remove the item from the actual page.
+            parent.parent().remove(parent);
+        });
+    }, null);
 }
 
 function showExtras(e) {
