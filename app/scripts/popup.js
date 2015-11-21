@@ -13,26 +13,6 @@ var socket = null;
 var socketDeferred = $.Deferred();
 
 /**
- * Parses messages received off of the WebSocket to the server.
- *
- * @param {object} event The event received on the WebSocket.
- */
-function webSocketReceive(event) {
-    var message = JSON.parse(event.data);
-    switch (message.type) {
-        case 'get_counts':
-            //var results = message.value;
-            //displayCounts(results.block, results.scrub, results.allow);
-            console.log('Display action counts: ' + event.data);
-            // TODO: add counts to UI
-            break;
-        default:
-            console.log('Unsupported event: ' + message.type + ' received.');
-            break;
-    }
-}
-
-/**
  * Setup the WebSocket connection to the server.
  *
  * @param {Deferred} socketDeferred Deferred Object used to send only when open.
@@ -56,6 +36,26 @@ function setupWebSocket(socketDeferred, onmessage) {
 }
 
 /**
+ * Sends a request to the server.
+ *
+ * @param {object} request A request object to Stringify then send.
+ */
+function webSocketSend(request) {
+    var payload = JSON.stringify(request);
+    $.when(socketDeferred).then(
+        function() {
+            // Resolve handler, we're connected
+            console.log('[WebSocket] request: ' + payload);
+            socket.send(payload);
+        },
+        function(event) {
+            // Reject handler
+            console.log('[WebSocket] failed: ', event);
+        }
+    );
+}
+
+/**
  * Send an async request to the server for the action counts for a list
  * of domains.
  *
@@ -69,19 +69,26 @@ function sendCountsRequest(domains) {
             'domains': domains
         }
     };
-    var payload = JSON.stringify(request);
+    webSocketSend(request);
+}
 
-    $.when(socketDeferred).then(
-        function() {
-            // Resolve handler, we're connected
-            console.log('Requesting counts: ' + payload);
-            socket.send(payload);
-        },
-        function(event) {
-            // Reject handler
-            console.log('WebSocket failed: ', event);
+/**
+ * Send an async request to the server for the action counts for a list
+ * of domains.
+ *
+ * @param {object} origin The origin string.
+ * @param {object} choice allow, block, or scrub
+ */
+function sendTallyRequest(origin, choice) {
+    // Build the payload
+    var request = {
+        'function': 'tally',
+        'args': {
+            'domains': origin,
+            'choice': choice
         }
-    );
+    };
+    webSocketSend(request);
 }
 
 function getWOTString(rank) {
@@ -203,13 +210,53 @@ function calculateStats(actions) {
     };
 }
 
-function updateUI(request, requests) {
+function updateCountCaption(item, className, percent) {
+    var caption = item.find('.' + className);
+    caption.html(percent + '%');
+}
+
+function addCountsToUI(counts) {
+    for (var hostname in counts) {
+        if (!counts.hasOwnProperty(hostname)) {
+            continue;
+        }
+        var actions = calculateStats(counts[hostname]);
+        // Since the id is a hostname we must replace the dots, since JQuery
+        // doesn't like dots.
+        // e.g. '#google.com' -> '#google\.com'
+        var itemId = hostname.replace(/\./g, '\\.');
+        var item = $('#' + itemId);
+        updateCountCaption(item, 'allow', actions.allow[1]);
+        updateCountCaption(item, 'block', actions.block[1]);
+        updateCountCaption(item, 'scrub', actions.scrub[1]);
+    }
+}
+
+/**
+ * Parses messages received off of the WebSocket to the server.
+ *
+ * @param {object} event The event received on the WebSocket.
+ */
+function webSocketReceive(event) {
+    var message = JSON.parse(event.data);
+    switch (message.type) {
+        case 'get_counts':
+            var counts = message.value;
+            console.log('[WebSocket] Received action counts: ', message);
+            addCountsToUI(counts);
+            break;
+        default:
+            console.log('[WebSocket] Unsupported response: ' + message.type);
+            break;
+    }
+}
+
+function updateUI(hostname, request) {
     // Extract actions
-    var hostname = request;
     var actions = null;
     console.log();
-    if ('actions' in requests[request]) {
-        actions = calculateStats(requests[request].actions);
+    if ('actions' in request) {
+        actions = calculateStats(request.actions);
     } else {
         console.log('Malformed message skipping.');
         return;
@@ -220,6 +267,8 @@ function updateUI(request, requests) {
     // Create the parent span object
     var item = $('<span>');
     item.addClass('item');
+    // Store the hostname as the id for easy lookups
+    item.attr('id', hostname);
     var options = $('<div>');
     var ranks = $('<div>');
     var extras = $('<div>');
@@ -304,8 +353,8 @@ function updateUI(request, requests) {
     ranks.append(alexa);
     ranks.append(wot);
     // Populate extra content
-    if ('extras' in requests[request]) {
-        var exList = requests[request].extras;
+    if ('extras' in request) {
+        var exList = request.extras;
         if (exList.length > 0) {
             var arrow = $('<i>');
             arrow.addClass('fa');
@@ -322,7 +371,7 @@ function updateUI(request, requests) {
             }
             // Add the headers
             extras.append('<h3>Headers</h3>');
-            var headers = requests[request].headers;
+            var headers = request.headers;
             for (var header in headers) {
                 extras.append('<b>' + headers[header].name + '</b>: ' +
                               headers[header].value + '<br />');
@@ -355,15 +404,30 @@ function updateUI(request, requests) {
     getAlexaRank(hostname, alexa);
 }
 
+/**
+ * Updates the UI for each request. Also collects the 3rd party hostnames and
+ * sends the actions counts query to the server.
+ *
+ * @param {object} requests Usable by updateUI()
+ */
 function processRequests(requests) {
-    for (var request in requests) {
-        if (!requests.hasOwnProperty(request)) {
+    var hostnames = [];
+    for (var hostname in requests) {
+        if (!requests.hasOwnProperty(hostname)) {
             continue;
         }
-        updateUI(request, requests);
+        hostnames.push(hostname);
+        updateUI(hostname, requests[hostname]);
     }
+    sendCountsRequest(hostnames);
 }
 
+/**
+ * Convert background requests Object into the format expected by the UI.
+ *
+ * @param {object} requests
+ * @returns {object} requests usable by updateUI()
+ */
 function convertRequests(requests) {
     var blockedRequests = {};
     for (var id in requests) {
@@ -407,6 +471,10 @@ function convertRequests(requests) {
     return blockedRequests;
 }
 
+// Initialize everything.
+
+socket = setupWebSocket(socketDeferred, webSocketReceive);
+
 $(document).ready(function() {
     // Retrieve the current tabId to ask for all our blocked requests.
     var query = {active: true, currentWindow: true};
@@ -426,8 +494,3 @@ $(document).ready(function() {
 $('.header .settings').click(function() {
     chrome.runtime.openOptionsPage();
 });
-
-socket = setupWebSocket(socketDeferred, webSocketReceive);
-
-console.log('Testing backend server...');
-sendCountsRequest(['google.com', 'github.com']);
