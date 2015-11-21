@@ -76,10 +76,10 @@ function piiInRequestUrl(request) {
         piiFound = true;
     }
     var afterDomain = url.pathname + url.search + url.hash;
-    if (tabURL.host !== '' && afterDomain.indexOf(tabURL.host) !== -1) {
+    if (tabURL.hostname && afterDomain.indexOf(tabURL.hostname) !== -1) {
         // current hostname info is leaking in this request
         addBlockMessage(request, 'Info about the current domain (' +
-            tabURL.host + ') is present in this request.');
+            tabURL.hostname + ') is present in this request.');
         piiFound = true;
     }
     // any PII data is leaking in this request
@@ -191,6 +191,7 @@ function onBeforeRequest(details) {
 function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
     var request = fullRequest(details);
     var userAction = stopleak.getReqAction(sourceOrigin, destOrigin);
+    var saveRequest = false;
     var cancel = false;
     var sanitizedHeaders = request.requestHeaders;
 
@@ -209,23 +210,25 @@ function onBeforeSendHeaders(details, sourceOrigin, destOrigin) {
             break;
         case ACTION_DENY:
             // TODO: Should we block unconditionally or only if PII is present?
-            cancel = true;
+            cancel = piiInRequest(request);
             break;
         case ACTION_UNKNOWN:
             if (piiInRequest(request)) {
                 // TODO: notify user's tab with content popup?
-                cancel = true;
+                cancel = saveRequest = true;
             }
             break;
         default:
             console.assert(false, 'Reached unreachable code!');
     }
     if (cancel) {
-        stopleak.tabCache.saveRequest(request);
+        if (saveRequest) {
+            stopleak.tabCache.saveRequest(request);
+        }
         stopleak.tabCache.incBlockCount(request.tabId);
         console.log('Cancelling request because:', request.blockReasons);
         console.log('PII found:', Object.keys(request.piiFound));
-        return {cancel: cancel};
+        return {cancel: true};
     }
     return {requestHeaders: sanitizedHeaders};
 }

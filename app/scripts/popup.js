@@ -1,5 +1,5 @@
 'use strict';
-/*global $, chrome, document*/
+/*global $, chrome, document, updateSyncSetting, BLOCKED_STRINGS, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
@@ -155,6 +155,19 @@ function getWOTRank(url, element) {
     });
 }
 
+function optionToStorage(option) {
+    switch (option) {
+        case 'allow':
+            return BLOCKED_STRINGS;
+        case 'scrub':
+            return ACTION_SCRUB;
+        case 'deny':
+            return ACTION_DENY;
+        default:
+            return ACTION_UNKNOWN;
+    }
+}
+
 function fade(e) {
     var element = $(e.target);
     var parent = element.parent().parent().parent();
@@ -166,9 +179,13 @@ function fade(e) {
     var option = element.parent().attr('title');
     var hostname = parent.find('.hostname').data('hostname');
     // Inform background of our decesion
+    console.log('option: ' + option);
+    console.log('hostname: ' + hostname);
     chrome.extension.sendMessage({method: 'option_selected',
                                   option: option,
                                   hostname: hostname});
+
+    updateSyncSetting(optionToStorage(option), {val: hostname}, null, null);
 }
 
 function showExtras(e) {
