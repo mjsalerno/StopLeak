@@ -101,10 +101,10 @@ function piiInRequestUrl(request) {
         piiFound = true;
     }
     var afterDomain = url.pathname + url.search + url.hash;
-    if (tabURL.host !== '' && afterDomain.indexOf(tabURL.host) !== -1) {
+    if (tabURL.hostname && afterDomain.indexOf(tabURL.hostname) !== -1) {
         // current hostname info is leaking in this request
         addBlockMessage(request, 'Info about the current domain (' +
-            tabURL.host + ') is present in this request.');
+            tabURL.hostname + ') is present in this request.');
         piiFound = true;
     }
     // any PII data is leaking in this request
