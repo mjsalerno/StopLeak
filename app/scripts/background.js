@@ -42,18 +42,16 @@ function addBlockMessage(request, message) {
  * @returns {boolean} True if the object contains PII data.
  */
 function containsPIIdata(request, object) {
-    var found = false;
-    var pii;
-    var lower = JSON.stringify(object).toLocaleLowerCase();
-    var len = stopleak[BLOCKED_STRINGS].length;
-    for (var i = 0; i < len; ++i) {
-        pii = stopleak[BLOCKED_STRINGS][i];
-        if (lower.indexOf(pii) !== -1) {
-            request.piiFound[pii] = 1;
-            found = true;
-        }
+    var str = JSON.stringify(object);
+    var matched = str.match(stopleak.piiRegex);
+    if (matched === null) {
+        return false;
     }
-    return found;
+    // Save matches
+    for (var i = 0; i < matched.length; ++i) {
+        request.piiFound[matched[i]] = 1;
+    }
+    return true;
 }
 
 /**

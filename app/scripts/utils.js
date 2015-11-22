@@ -115,7 +115,7 @@ stopleak.getPseudoRandomString = function(len) {
 /**
  * Escape regex special characters.
  *
- * @param str Input string.
+ * @param {string} str Input string.
  * @returns {string} Properly escaped string for regex.
  */
 stopleak.escapeRegExp = function(str) {

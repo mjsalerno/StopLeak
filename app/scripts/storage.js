@@ -6,7 +6,8 @@
 
 var stopleak = stopleak || {};
 
-stopleak.piiRegex = new RegExp('()', 'gi');
+stopleak.noMatchRegex = new RegExp('a^', 'gi');
+stopleak.piiRegex = stopleak.noMatchRegex;
 stopleak[BLOCKED_STRINGS] = [];
 stopleak[DENY] = [];
 stopleak[ALLOW] = [];
@@ -247,12 +248,26 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
 }
 
 /**
+ * Update the regex used to match for PII data.
+ */
+function updatePiiRegex() {
+    var blocked = stopleak[BLOCKED_STRINGS];
+    if (blocked.length > 0) {
+        var regex = '(' + blocked.map(stopleak.escapeRegExp).join('|') + ')';
+        stopleak.piiRegex = new RegExp(regex, 'gi');
+    } else {
+        stopleak.piiRegex = stopleak.noMatchRegex;
+    }
+}
+
+/**
  * Load user data from storage.
  */
 function getUserData() {
     chrome.storage.sync.get(null, function(list) {
         stopleak[BLOCKED_STRINGS] = list.hasOwnProperty(BLOCKED_STRINGS) ?
             list[BLOCKED_STRINGS] : [];
+        updatePiiRegex();
 
         stopleak[DENY] = list.hasOwnProperty(DENY) ?  list[DENY] : [];
 
@@ -265,15 +280,6 @@ function getUserData() {
         stopleak[CUSTOM_SETTINGS] = list.hasOwnProperty(CUSTOM_SETTINGS) ?
             list[CUSTOM_SETTINGS] : {};
     });
-}
-
-/**
- * Update the regex used to match for PII data.
- */
-function updatePiiRegex() {
-    var escapedStrs = stopleak[BLOCKED_STRINGS].map(stopleak.escapeRegExp);
-    var scrubRegex = '(' + escapedStrs.join('|') + ')';
-    stopleak.piiRegex = new RegExp(scrubRegex, 'gi');
 }
 
 /**
