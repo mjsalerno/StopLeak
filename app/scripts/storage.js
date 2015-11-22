@@ -1,6 +1,3 @@
-/**
- * Created by michael on 11/15/15.
- */
 /* global chrome, BLOCKED_STRINGS, SETTINGS, CUSTOM_SETTINGS, SWWL,
 ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 'use strict';
@@ -11,6 +8,7 @@ stopleak.noMatchRegex = new RegExp('a^', 'gi');
 stopleak.piiRegex = stopleak.noMatchRegex;
 stopleak[BLOCKED_STRINGS] = [];
 stopleak[SETTINGS] = {};
+stopleak[SWWL] = {};
 stopleak[CUSTOM_SETTINGS] = {};
 
 /**
