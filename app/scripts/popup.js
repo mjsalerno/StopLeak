@@ -412,17 +412,29 @@ function updateUI(origin, requests) {
             rdiv.append(request.reasons[r]);
         }
         // Add URL info
-        rdiv.append('<h4><u>Info:</u></h4>');
-        for (var e in request.extras) {
-            rdiv.append(request.extras[e]);
-            rdiv.append('<br />');
+        if (request.extras.length > 0) {
+            rdiv.append('<h4><u>Info:</u></h4>');
+            for (var e in request.extras) {
+                rdiv.append(request.extras[e]);
+                rdiv.append('<br />');
+            }
+        }
+        // Add Found leaked pii
+        if (request.pii.length > 0) {
+            rdiv.append('<h4><u>Detected Leaked PII:</u></h4>');
+            for (var p in request.pii) {
+                rdiv.append(request.pii[p]);
+                rdiv.append('<br />');
+            }
         }
         // Add the header info
-        rdiv.append('<h4><u>Headers</u></h4>');
-        for (var h in request.headers) {
-            var header = request.headers[h];
-            rdiv.append('<b>' + header.name + '</b>: ' +
-                          header.value + '<br />');
+        if (request.headers.length > 0) {
+            rdiv.append('<h4><u>Headers</u></h4>');
+            for (var h in request.headers) {
+                var header = request.headers[h];
+                rdiv.append('<b>' + header.name + '</b>: ' +
+                              header.value + '<br />');
+            }
         }
         // Add the Request to the extras div
         rlink.append(rdiv);
@@ -430,9 +442,7 @@ function updateUI(origin, requests) {
         // Add the onclick action for rlink
         rlink.click(showSubRequest);
     }
-
-    // FIXME: Make these buttons communicate with python server
-    // FIXME: or the background js page?
+    // Add function to communicate with backend
     acceptIcon.click(selectOption);
     blockIcon.click(selectOption);
     scrubIcon.click(selectOption);
@@ -490,21 +500,29 @@ function convertRequests(requests) {
         for (var i in request.blockReasons) {
             reasons.push(request.blockReasons[i]);
         }
+        // Look through URL and request information
         var extraCanidates = [url.protocol, url.username,
-                              url.password, url.port, url.search];
+                              url.password, url.port, url.search,
+                              request.method];
         var canidateKeys = ['<b>Protocol:</b>', '<b>Username:</b>',
                             '<b>Password:</b>', '<b>Port:</b>',
-                            '<b>Query Params:</b>'];
+                            '<b>Query Params:</b>', '<b>Method:</b>'];
         var extras = [];
         for (var j in extraCanidates) {
             if (extraCanidates[j].length > 0) {
                 extras.push(canidateKeys[j] + ' ' + extraCanidates[j]);
             }
         }
+        // Get a list of the pii found in the request
+        var pii = [];
+        for (var k in request.piiFound) {
+            pii.push(request.piiFound[k]);
+        }
         // Put the results in the correct format
         var results = {
             rid: id,
             reasons: reasons,
+            pii: pii,
             headers: request.requestHeaders,
             extras: extras
         };
@@ -529,6 +547,7 @@ $(document).ready(function() {
         // Now just grab the requests from the background page
         chrome.runtime.getBackgroundPage(function(backgroundPage) {
             var requests = backgroundPage.getBlockedRequests(currentTab.id);
+            console.log(requests);
             var blockedRequests = convertRequests(requests);
             // Display the requests in the UI
             processRequests(blockedRequests);
