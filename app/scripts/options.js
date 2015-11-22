@@ -173,7 +173,7 @@ function addSetting(inId, tblId, key) {
     },  null);
 }
 
-function addActionSetting(inId, tblId, action) {
+function addActionSetting(inId, action) {
     var newOrigin = document.getElementById(inId).value;
     if (!newOrigin) {
         return;
@@ -182,9 +182,9 @@ function addActionSetting(inId, tblId, action) {
     // TODO: Tell user on failure.
     bgPage.updateSyncSetting(SETTINGS, {val: newOrigin, action: action},
         function() {
-            refreshActionSetting(tblId, action);
-            //var staleEntry = document.getElementById(newOrigin);
-            //staleEntry.remove();
+            refreshActionSetting('allow-tbl', ACTION_ALLOW);
+            refreshActionSetting('deny-tbl', ACTION_DENY);
+            refreshActionSetting('scrub-tbl', ACTION_SCRUB);
         },
     null);
 }
@@ -277,13 +277,13 @@ document.addEventListener('DOMContentLoaded', function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
     };
     document.getElementById('add-allow-btn').onclick = function() {
-        addActionSetting('new-allow', 'allow-tbl', ACTION_ALLOW);
+        addActionSetting('new-allow',  ACTION_ALLOW);
     };
     document.getElementById('add-deny-btn').onclick = function() {
-        addActionSetting('new-deny', 'deny-tbl', ACTION_DENY);
+        addActionSetting('new-deny',  ACTION_DENY);
     };
     document.getElementById('add-scrub-btn').onclick = function() {
-        addActionSetting('new-scrub', 'scrub-tbl', ACTION_SCRUB);
+        addActionSetting('new-scrub', ACTION_SCRUB);
     };
     document.getElementById('add-swwl-btn').onclick = function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
