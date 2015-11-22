@@ -10,7 +10,7 @@ var stopleak = stopleak || {};
 stopleak.noMatchRegex = new RegExp('a^', 'gi');
 stopleak.piiRegex = stopleak.noMatchRegex;
 stopleak[BLOCKED_STRINGS] = [];
-stopleak[SETTINGS] = [];
+stopleak[SETTINGS] = {};
 stopleak[CUSTOM_SETTINGS] = {};
 
 /**
@@ -255,7 +255,7 @@ function getUserData() {
         updatePiiRegex();
 
         stopleak[SETTINGS] = list.hasOwnProperty(SETTINGS) ?
-            list[SETTINGS] : [];
+            list[SETTINGS] : {};
 
         stopleak[SWWL] = list.hasOwnProperty(SWWL) ?  list[SWWL] : [];
 
