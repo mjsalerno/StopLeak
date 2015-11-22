@@ -129,22 +129,25 @@ function getAlexaRank(url, element) {
     });
 }
 
-function getWOTRank(url, element) {
+function getWOTRank(origin, element) {
+    var hostname = new URL(origin).hostname;
     $.ajax({
         type: 'GET',
-        url: WOT_URL + url + '/&key=' + WOT_KEY,
+        url: WOT_URL + hostname + '/&key=' + WOT_KEY,
         dataType: 'json',
         success: function(data) {
             //put data back up in that function later
-            if (data[url][0] === undefined) {
+            if (!(hostname in data) || data[hostname][0] === undefined) {
                 element.html(' WOT: None');
             } else {
-                var rank = data[url][0][0];
+                var rank = data[hostname][0][0];
                 var wot = getWOTString(rank);
                 element.html(' WOT: ' + wot[0]);
                 var icon = $('<img>', {
+                    class: 'wot-image',
                     src: wot[1],
-                    alt: wot[0]
+                    alt: wot[0],
+                    title: 'WOT score: ' + rank
                 });
                 element.append(icon);
             }
@@ -189,7 +192,7 @@ function fade(e) {
     }, null);
 }
 
-function showExtras(e) {
+function showRequests(e) {
     var element = $(e.target);
     if (element.parent().parent().find('.extra').length) {
         var extra = element.parent().parent().find('.extra');
@@ -206,6 +209,25 @@ function showExtras(e) {
         }
     } else {
         console.log('No extra element');
+    }
+}
+
+function showSubRequest() {
+    var element = $(this);
+    console.log(element);
+    if (element.find('.request').length) {
+        var rbody = element.find('.request');
+        var arrow = element.find('.fa');
+        if (rbody.css('display') === 'none') {
+            rbody.slideDown('slow');
+            rbody.css('visibility', 'visible');
+            arrow.removeClass('fa-angle-right');
+            arrow.addClass('fa-angle-down');
+        } else {
+            rbody.slideUp('slow');
+            arrow.removeClass('fa-angle-down');
+            arrow.addClass('fa-angle-right');
+        }
     }
 }
 
@@ -269,79 +291,82 @@ function webSocketReceive(event) {
     }
 }
 
-function updateUI(hostname, request) {
+function updateUI(origin, requests) {
     // Extract actions
-    var actions = null;
-    console.log();
-    if ('actions' in request) {
-        actions = calculateStats(request.actions);
-    } else {
-        console.log('Malformed message skipping.');
-        return;
-    }
-    // Build up the blocked request
-    console.log('Hostname: ' + hostname);
-    console.log('Actions: ', actions);
+    // var actions = null;
     // Create the parent span object
-    var item = $('<span>');
-    item.addClass('item');
+    var item = $('<span>', {
+        class: 'item',
+        id: origin
+    });
     // Store the origin as the id for easy lookups
-    item.attr('id', request.origin);
     var options = $('<div>');
     var ranks = $('<div>');
-    var extras = $('<div>');
-    extras.addClass('extra');
+    var extras = $('<div>', {
+        class: 'extra'
+    });
     var hr = $('<hr/>');
-
     // Build all the option spans
-    var host = $('<span>');
-    host.html(hostname + ' ');
-    host.addClass('hostname');
-    host.data('origin', request.origin);
-    // Build the block, accept, and scrub buttons
-    var accept = $('<span>');
-    var acceptIcon = $('<i>');
-    acceptIcon.addClass('fa');
-    acceptIcon.addClass('fa-check');
+    var org = $('<span>', {
+        class: 'origin',
+        title: 'Click for a more detailed analysis'
+    });
+    org.html(origin + ' ');
+    org.data('origin', origin);
+    // Add the extras click handler
+    org.click(showRequests);
+    // Create the drop down arrow
+    var arrow = $('<i>', {
+        class: 'fa fa-angle-right'
+    });
+    org.append(arrow);
+    // Build the accept button
+    var accept = $('<span>', {
+        class: 'option allow',
+        title: 'allow'
+    });
+    var acceptIcon = $('<i>', {
+        class: 'fa fa-check'
+    });
     var acceptCaption = $('<span>');
-    acceptCaption.html(actions.allow[1] + '%');
+    // acceptCaption.html(actions.allow[1] + '%');
 
-    accept.addClass('option');
-    accept.addClass('allow');
     accept.html(' ');
     accept.append(acceptIcon);
     accept.append(acceptCaption);
-    accept.prop('title', 'allow');
 
-    var block = $('<span>');
-    var blockIcon = $('<i>');
-    blockIcon.addClass('fa');
-    blockIcon.addClass('fa-times');
+    // Build the block button
+    var block = $('<span>', {
+        class: 'option block'
+    });
+    var blockIcon = $('<i>', {
+        class: 'fa fa-times',
+        title: 'block'
+    });
     var blockCaption = $('<span>');
-    blockCaption.html(actions.block[1] + '%');
+    // blockCaption.html(actions.block[1] + '%');
 
-    block.addClass('option');
-    block.addClass('block');
     block.html(' ');
     block.append(blockIcon);
     block.append(blockCaption);
-    block.prop('title', 'block');
 
-    var scrub = $('<span>');
-    var scrubIcon = $('<i>');
-    scrubIcon.addClass('fa');
-    scrubIcon.addClass('fa-hand-paper-o');
+    // Build the scrub button
+    var scrub = $('<span>', {
+        class: 'option scrub',
+        title: 'scrub'
+    });
+    var scrubIcon = $('<i>', {
+        class: 'fa fa-eraser'
+    });
     var scrubCaption = $('<span>');
-    scrubCaption.html(actions.scrub[1] + '%');
+    // scrubCaption.html(actions.scrub[1] + '%');
 
-    scrub.addClass('option');
-    scrub.addClass('scrub');
     scrub.html(' ');
     scrub.append(scrubIcon);
     scrub.append(scrubCaption);
-    scrub.prop('title', 'scrub');
+
     // Add all the options to the options div
-    options.append(host);
+    options.append(org);
     options.append(accept);
     options.append(block);
     options.append(scrub);
@@ -370,44 +395,50 @@ function updateUI(hostname, request) {
     // Add both rankings to the ranks div
     ranks.append(alexa);
     ranks.append(wot);
-    // Populate extra content
-    if ('extras' in request) {
-        var exList = request.extras;
-        if (exList.length > 0) {
-            var arrow = $('<i>');
-            arrow.addClass('fa');
-            arrow.addClass('fa-angle-right');
-            host.append(arrow);
-            host.prop('title',
-                      'Click for a more detailed analysis');
-            // extras.append('<br />');
-            // Add basic url information
-            extras.append('<h3>Info</h3>');
-            for (var extra in exList) {
-                extras.append(exList[extra]);
-                extras.append('<br />');
-            }
-            // Add the headers
-            extras.append('<h3>Headers</h3>');
-            var headers = request.headers;
-            for (var header in headers) {
-                extras.append('<b>' + headers[header].name + '</b>: ' +
-                              headers[header].value + '<br />');
-            }
-            // Add the extras click handler
-            host.click(showExtras);
-        } else {
-            host.prop('title', 'Leaky url');
+    // Build the multiple request data sections
+    for (var i in requests) {
+        var request = requests[i];
+        var rlink = $('<div>', {
+            html: '<h3><u>Request ' + (parseInt(i) + 1) +
+                  '</u> <i class="fa fa-angle-right"></i></h3>',
+            class: 'subrequest'
+        });
+        var rdiv = $('<div>', {
+            css: {
+                display: 'none',
+                color: 'black'
+            },
+            class: 'request'
+        });
+        // Add Reasons for pontential concern
+        for (var r in request.reasons) {
+            rdiv.append(request.reasons[r]);
         }
-    } else {
-        console.log('NO Extras!');
+        // Add URL info
+        rdiv.append('<h4><u>Info:</u></h4>');
+        for (var e in request.extras) {
+            rdiv.append(request.extras[e]);
+            rdiv.append('<br />');
+        }
+        // Add the header info
+        rdiv.append('<h4><u>Headers</u></h4>');
+        for (var h in request.headers) {
+            var header = request.headers[h];
+            rdiv.append('<b>' + header.name + '</b>: ' +
+                          header.value + '<br />');
+        }
+        // Add the Request to the extras div
+        rlink.append(rdiv);
+        extras.append(rlink);
+        // Add the onclick action for rlink
+        rlink.click(showSubRequest);
     }
-    // Add default catchall for clicking an action
+
     // FIXME: Make these buttons communicate with python server
     // FIXME: or the background js page?
-    accept.click(fade);
-    block.click(fade);
-    scrub.click(fade);
+    acceptIcon.click(fade);
+    blockIcon.click(fade);
+    scrubIcon.click(fade);
 
     // Put together the whole object
     item.append(options);
@@ -418,8 +449,8 @@ function updateUI(hostname, request) {
     $('#content').append(item);
 
     // Kick off async tasks to get rankings
-    getWOTRank(hostname, wot);
-    getAlexaRank(hostname, alexa);
+    getWOTRank(origin, wot);
+    getAlexaRank(origin, alexa);
 }
 
 /**
@@ -430,12 +461,14 @@ function updateUI(hostname, request) {
  */
 function processRequests(requests) {
     var origins = [];
-    for (var hostname in requests) {
-        if (!requests.hasOwnProperty(hostname)) {
+    for (var origin in requests) {
+        if (!requests.hasOwnProperty(origin)) {
             continue;
         }
-        origins.push(requests[hostname].origin);
-        updateUI(hostname, requests[hostname]);
+        origins.push(origin);
+        console.log(origin);
+        // Build the UI
+        updateUI(origin, requests[origin]);
     }
     sendCountsRequest(origins);
 }
@@ -455,16 +488,16 @@ function convertRequests(requests) {
         var request = requests[id];
         // Extract the hostname
         var url = new URL(request.url);
-        var hostname = url.hostname;
+        var origin = url.origin;
         // Get the reason
         var reasons = [];
         for (var i in request.blockReasons) {
             reasons.push(request.blockReasons[i]);
         }
-        var extraCanidates = [url.origin, url.protocol, url.username,
-                              url.password, url.search];
-        var canidateKeys = ['<b>Origin:</b>', '<b>Protocol:</b>',
-                            '<b>Username:</b>', '<b>Password:</b>',
+        var extraCanidates = [url.protocol, url.username,
+                              url.password, url.port, url.search];
+        var canidateKeys = ['<b>Protocol:</b>', '<b>Username:</b>',
+                            '<b>Password:</b>', '<b>Port:</b>',
                             '<b>Query Params:</b>'];
         var extras = [];
         for (var j in extraCanidates) {
@@ -472,21 +505,21 @@ function convertRequests(requests) {
                 extras.push(canidateKeys[j] + ' ' + extraCanidates[j]);
             }
         }
-
-        console.log(requests[id]);
-        // Add the details about the request
-        blockedRequests[hostname] = {
-            requestId: id,
-            origin: url.origin,
+        // Put the results in the correct format
+        var results = {
+            rid: id,
             reasons: reasons,
             headers: request.requestHeaders,
-            extras: extras,
-            actions: {
-                block: 0, allow: 0, scrub: 0
-            }
+            extras: extras
         };
-        console.log(blockedRequests);
+        // Add the details about the request
+        if (origin in blockedRequests) {
+            blockedRequests[origin].push(results);
+        } else {
+            blockedRequests[origin] = [results];
+        }
     }
+    console.log(blockedRequests);
     return blockedRequests;
 }
 

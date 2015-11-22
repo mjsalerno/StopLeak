@@ -17,15 +17,15 @@ i .fa {
     display: inline-block;
 }
 
-.fa-check {
+.fa-check:hover {
     color: green;
 }
 
-.fa-times {
+.fa-times:hover {
     color: red;
 }
 
-.fa-hand-paper-o {
+.fa-eraser:hover {
     color: orange;
 }
 
@@ -35,11 +35,11 @@ i .fa {
     display: block;
 }
 
-.hostname {
+.origin {
     width: 40%;
 }
 
-.hostname:hover {
+.origin:hover {
     cursor: pointer;
     color: blue;
     text-decoration: underline;
@@ -51,6 +51,7 @@ i .fa {
 
 .allow, .block, .scrub {
     width: 20%;
+    color: #B8B8B8;
 }
 
 .alexa, .wot {
@@ -102,4 +103,15 @@ i .fa {
     display: inline-block;
     position: relative;
     left: 20px;
+}
+
+.wot-image {
+    position: relative;
+    top: 6px;
+    left: 5px;
+}
+
+.subrequest:hover {
+    cursor: pointer;
+    color: blue;
 }

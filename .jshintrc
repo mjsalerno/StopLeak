@@ -21,5 +21,6 @@
   "globals" : {
     "chrome": true,
     "crypto": true
-  }
+  },
+  "validthis": true
 }
