@@ -140,13 +140,12 @@ function onCommitted(details) {
 }
 
 /**
- * Fired when the reference fragment of a frame was updated. All future events
- * for that frame will use the updated URL.
+ * Fired when a tab is closed.
  *
- * @param {object} details Info about the frame and tab that was updated.
+ * @param {int} tabId Id of removed tab.
  */
-function onReferenceFragmentUpdated(details) {
-    stopleak.tabCache.updateUrl(details.tabId, details.frameId, details.url);
+function onRemoved(tabId) {
+    delete stopleak.tabCache.tabs[tabId];
 }
 
 /**
@@ -156,18 +155,7 @@ function onReferenceFragmentUpdated(details) {
  * @param {object} details Info about the replaced tab.
  */
 function onTabReplaced(details) {
-    stopleak.tabCache.tabs[details.tabId] = stopleak.tabCache
-        .tabs[details.replacedTabId];
     delete stopleak.tabCache.tabs[details.replacedTabId];
-}
-
-/**
- * Fired when a tab is closed.
- *
- * @param {int} tabId Id of removed tab.
- */
-function onRemoved(tabId) {
-    delete stopleak.tabCache.tabs[tabId];
 }
 
 /**
@@ -201,6 +189,4 @@ initTabCache();
 
 chrome.tabs.onRemoved.addListener(onRemoved);
 chrome.webNavigation.onCommitted.addListener(onCommitted);
-//chrome.webNavigation.onReferenceFragmentUpdated
-//    .addListener(onReferenceFragmentUpdated);
 chrome.webNavigation.onTabReplaced.addListener(onTabReplaced);

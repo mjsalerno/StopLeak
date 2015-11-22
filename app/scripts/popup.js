@@ -3,7 +3,7 @@
 CUSTOM_SETTINGS, ACTION_SCRUB, ACTION_UNKNOWN*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
-var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
+var WOT_URL = 'https://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
 var DB_HOST = 'ip.roofis0.net';
 var DB_PORT = '667';
