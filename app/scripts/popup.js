@@ -67,6 +67,12 @@ function sendTallyRequest(origin, choice) {
     webSocketSend(request, null);
 }
 
+/**
+ * Converts an WOT value to a human readable description.
+ *
+ * @param {int} rank Rank returned by the request to WOT.
+ * @return {string} Returns an english description of the WOT value.
+ */
 function getWOTString(rank) {
     var rtn;
 
@@ -85,9 +91,16 @@ function getWOTString(rank) {
     return rtn;
 }
 
-function getAlexaRank(url, element) {
+/**
+ * Queries alexa for the origin's rank and adds it to the DOM element passed
+ * into the function.
+ *
+ * @param {string} origin String containing the origin to query alexa for.
+ * @param {object} element DOM element to add the alexa rank to.
+ */
+function getAlexaRank(origin, element) {
     $.ajax({
-        url: ALEXA_URL + url,
+        url: ALEXA_URL + origin,
         dataType: 'xml',
         success: function(data) {
             var $xml = $(data);
@@ -105,6 +118,13 @@ function getAlexaRank(url, element) {
     });
 }
 
+/**
+ * Queries WOT for the ranking of the origins hostname and adds it to the DOM
+ * element passed into the function.
+ *
+ * @param {string} origin String containing the origin to query WOT for.
+ * @param {object} element DOM element to add the alexa rank to.
+ */
 function getWOTRank(origin, element) {
     var hostname = new URL(origin).hostname;
     $.ajax({
@@ -155,6 +175,12 @@ function optionToStorage(option) {
     }
 }
 
+/**
+ * Handles the selection of the allow, scrub, and block options for the
+ * blocked request.
+ *
+ * @param {object} e Event object associated with the DOM event.
+ */
 function selectOption(e) {
     var element = $(e.target);
     var parent = element.parent().parent().parent();
@@ -185,6 +211,11 @@ function selectOption(e) {
                              null, null);
 }
 
+/**
+ * Handles making the list subrequests visible and hidden.
+ *
+ * @param {object} e Event object associated with the DOM event.
+ */
 function showRequests(e) {
     var element = $(e.target);
     if (element.parent().parent().find('.extra').length) {
@@ -205,6 +236,9 @@ function showRequests(e) {
     }
 }
 
+/**
+ * Handles making each individual subrequest visible and hidden.
+ */
 function showSubRequest() {
     var element = $(this);
     // console.log(element);
@@ -224,6 +258,11 @@ function showSubRequest() {
     }
 }
 
+/**
+ * Calculates the block, scrub, and allow stats.
+ *
+ * @param {object} actions Map containing the action count for each action.
+ */
 function calculateStats(actions) {
     var total = actions.block + actions.scrub + actions.allow;
     var blockPercent = 0;
@@ -243,6 +282,13 @@ function calculateStats(actions) {
     };
 }
 
+/**
+ * Adds a percentage value to the given item.
+ *
+ * @param {object} item DOM element to add the statistic to.
+ * @param {string} className Class name to search for.
+ * @param {float} percent Value to append to the item.
+ */
 function updateCountPercent(item, className, percent) {
     // Grab the choice span
     var choiceSpans = item.getElementsByClassName(className);
@@ -251,6 +297,11 @@ function updateCountPercent(item, className, percent) {
     percentSpan.innerHTML = percent + '%';
 }
 
+/**
+ * Adds all the percentage values to the allow, block, and scrub fields.
+ *
+ * @param {object} counts Map containing the count values for each option.
+ */
 function addCountsToUI(counts) {
     for (var origin in counts) {
         if (!counts.hasOwnProperty(origin)) {
@@ -285,6 +336,12 @@ function webSocketReceive(event) {
     }
 }
 
+/**
+ * Creates an element in the UI for the origin.
+ *
+ * @param {string} origin Origin (protocol/hostname:port), used to identify the request.
+ * @param {object[]} requests List of requests made for the origin.
+ */
 function updateUI(origin, requests) {
     // Extract actions
     // var actions = null;
@@ -547,7 +604,6 @@ function convertRequests(requests) {
 }
 
 // Initialize everything.
-
 $(document).ready(function() {
     // Retrieve the current tabId to ask for all our blocked requests.
     var query = {active: true, currentWindow: true};
