@@ -30,7 +30,7 @@
     </style>
 
     PII Data:<br>
-    <input type="text" id="new-filter">
+    <input type="text" id="new-filter" placeholder="Personal information...">
     <button id="add-filter-btn">Add</button>
     <button id="clear-filter-btn">Clear</button><br>
     <table id="filter-tbl">
@@ -46,7 +46,7 @@
     Allow Requests List:<br>
     Allow requests going towards the following sites even
     if they contain PII<br>
-    <input type="text" id="new-allow" placeholder="Destination url">
+    <input type="text" id="new-allow" placeholder="http://destination.com">
     <button id="add-allow-btn">Add</button>
     <button id="clear-allow-btn">Clear</button><br>
     <table id="allow-tbl">
@@ -57,7 +57,7 @@
     Deny Requests List:<br>
     Block requests that go towards the following sites even if they no not
     contain PII<br>
-    <input type="text" id="new-deny" placeholder="Destination url">
+    <input type="text" id="new-deny" placeholder="http://destination.com">
     <button id="add-deny-btn">Add</button>
     <button id="clear-deny-btn">Clear</button><br>
     <table id="deny-tbl">
@@ -68,7 +68,7 @@
     Scrub Requests List:<br>
     Delete or replace PII data with random strings going towards the following
     sites<br>
-    <input type="text" id="new-scrub" placeholder="Destination url">
+    <input type="text" id="new-scrub" placeholder="http://destination.com">
     <button id="add-scrub-btn">Add</button>
     <button id="clear-scrub-btn">Clear</button><br>
     <table id="scrub-tbl">
@@ -78,7 +78,7 @@
 
     Site Wide White List:<br>
     Disable extention on the following sites<br>
-    <input type="text" id="new-swwl" placeholder="Destination url">
+    <input type="text" id="new-swwl" placeholder="http://destination.com">
     <button id="add-swwl-btn">Add</button>
     <button id="clear-swwl-btn">Clear</button><br>
     <table id="swwl-tbl">
@@ -95,8 +95,8 @@
             <th class="box">Remove</th>
         </tr>
         <tr id="custom_input">
-            <td class="box"><input type="text" id="new-cs-src" placeholder="Source url"></td>
-            <td class="box"><input type="text" id="new-cs-dst" placeholder="Destination url"></td>
+            <td class="box"><input type="text" id="new-cs-src" placeholder="http://source.com"></td>
+            <td class="box"><input type="text" id="new-cs-dst" placeholder="http://destination.com"></td>
             <td class="box">
                 <select id="select-action"></select>
             </td>
