@@ -441,6 +441,10 @@ function updateUI(origin, requests) {
         extras.append(rlink);
         // Add the onclick action for rlink
         rlink.click(showSubRequest);
+        rdiv.click(function(e) {
+            e.stopPropagation();
+        });
+        rdiv.css('cursor', 'default');
     }
     // Add function to communicate with backend
     acceptIcon.click(selectOption);
@@ -552,7 +556,6 @@ $(document).ready(function() {
         // Now just grab the requests from the background page
         chrome.runtime.getBackgroundPage(function(backgroundPage) {
             var requests = backgroundPage.getBlockedRequests(currentTab.id);
-            console.log(requests);
             var blockedRequests = convertRequests(requests);
             // Display the requests in the UI
             processRequests(blockedRequests);
