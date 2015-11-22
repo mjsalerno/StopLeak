@@ -114,19 +114,6 @@ function addStringToUI(str, idd, key) {
     cell0.appendChild(btn);
 }
 
-/*
-function addStringToCS(src, dst, action) {
-    var table = document.getElementById('cs-tbl');
-    var row = table.insertRow(0);
-    var cell0 = row.insertCell(0);
-    var cell1 = row.insertCell(1);
-    var cell2 = row.insertCell(2);
-    cell0.innerHTML = src;
-    cell1.innerHTML = dst;
-    cell2.innerHTML = action;
-}
-*/
-
 function refreshSetting(idd, key) {
     chrome.storage.sync.get(null, function(items) {
         if (!items[key]) {
@@ -218,24 +205,28 @@ function addActions() {
     x.add(option);
 }
 
+function cleanActionSetting(tblid, action) {
+    chrome.storage.sync.get(null, function(list) {
+        if (list.hasOwnProperty(SETTINGS)) {
+            var settings = list[SETTINGS];
+
+            for (var key in settings) {
+                if (settings[key] === action) {
+                    delete settings[key];
+                }
+            }
+            var a = {};
+            a[SETTINGS] = settings;
+            chrome.storage.sync.set(a, function() {
+                document.getElementById(tblid).innerHTML = '';
+            });
+        }
+    });
+}
+
 function clearFilters() {
     chrome.storage.sync.remove(BLOCKED_STRINGS);
     document.getElementById('filter-tbl').innerHTML = '';
-}
-
-function clearAllows() {
-    chrome.storage.sync.remove(SETTINGS);
-    document.getElementById('allow-tbl').innerHTML = '';
-}
-
-function clearDeny() {
-    chrome.storage.sync.remove(SETTINGS);
-    document.getElementById('deny-tbl').innerHTML = '';
-}
-
-function clearScrub() {
-    chrome.storage.sync.remove(SETTINGS);
-    document.getElementById('scrub-tbl').innerHTML = '';
 }
 
 function clearSWWL() {
@@ -300,9 +291,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // document.getElementById('add-cs-btn').onclick = addCustSetting;
     document.getElementById('add-cs-btn').onclick = addCustomSetting;
     document.getElementById('clear-filter-btn').onclick = clearFilters;
-    document.getElementById('clear-allow-btn').onclick = clearAllows;
-    document.getElementById('clear-deny-btn').onclick = clearDeny;
-    document.getElementById('clear-scrub-btn').onclick = clearScrub;
+
+    document.getElementById('clear-allow-btn').onclick = function() {
+        cleanActionSetting('allow-tbl', ACTION_ALLOW);
+    };
+    document.getElementById('clear-deny-btn').onclick = function() {
+        cleanActionSetting('deny-tbl', ACTION_DENY);
+    };
+    document.getElementById('clear-scrub-btn').onclick = function() {
+        cleanActionSetting('scrub-tbl', ACTION_SCRUB);
+    };
+
     document.getElementById('clear-swwl-btn').onclick = clearSWWL;
     document.getElementById('clear-cs-btn').onclick = clearCustSettings;
 
