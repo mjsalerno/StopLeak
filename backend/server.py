@@ -20,9 +20,9 @@ DEFAULT_PORT = 8765
 
 class StopLeak(object):
 
-    def __init__(self, db_name, host, port):
+    def __init__(self, db_name, host, port, context):
         self.db = database.StopleakDB(db_name)
-        self.server = websockets.serve(handle_request, host, port)
+        self.server = websockets.serve(handle_request, host, port, ssl=context)
         self.host = host
         self.port = port
 
@@ -35,7 +35,16 @@ def main():
     level = log_level_to_int(args.log_level)
     init_logging(args.log_file, level)
 
-    stopLeak = StopLeak(args.db_name, args.host, args.port)
+    context = None
+    if not args.no_ssl:
+        context = createSSLContext()
+        import ssl
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        cert = '../../certs/cert.pem'
+        key = '../../certs/key.pem'
+        context.load_cert_chain(certfile=cert, keyfile=key)
+
+    stopLeak = StopLeak(args.db_name, args.host, args.port, context)
     logging.info('Listening at: %s:%s', args.host, args.port)
     try:
         # Start the asyncio event loop which runs the websockets request handler
@@ -76,6 +85,9 @@ def parse_args():
                            default=DEFAULT_PORT,
                            help='server port '
                                 '(default: {})'.format(DEFAULT_PORT))
+    argparser.add_argument('-n', '--no-ssl', action='store_true', dest='no_ssl',
+                           default=False,
+                           help='Turn off SSL/TLS (default: False)')
     argparser.add_argument('-v', '--version', action='version', version='StopLeak Server v0.1')
 
     return argparser.parse_args()
@@ -94,6 +106,19 @@ def log_level_to_int(str_log_level):
         exit(1)
     else:
         return numeric_level
+
+
+def createSSLContext():
+    import ssl
+    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    cert = '../../certs/cert.pem'
+    key = '../../certs/key.pem'
+    try:
+        context.load_cert_chain(certfile=cert, keyfile=key)
+    except FileNotFoundError:
+        print('ssl error, no cert/key: {}'.format([cert, key]), file=sys.stderr)
+        exit(1)
+    return context
 
 
 def init_logging(log_file, log_level):
