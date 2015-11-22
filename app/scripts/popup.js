@@ -604,7 +604,6 @@ function convertRequests(requests) {
             blockedRequests[origin] = [results];
         }
     }
-    // console.log(blockedRequests);
     return blockedRequests;
 }
 
@@ -622,9 +621,53 @@ $(document).ready(function() {
             processRequests(blockedRequests);
         });
     });
+    chrome.tabs.getSelected(null, function(tab) {
+        var origin = new URL(tab.url).origin;
+        var bgPage = chrome.extension.getBackgroundPage();
+        var whitelist = bgPage.stopleak.SITE_WIDE_WHITE_LIST;
+        var openWhitelist = function() {
+            chrome.runtime.openOptionsPage();
+        };
+
+        var settingHover = function() {
+            $(this).css('cursor', 'pointer');
+            $(this).css('text-decoration', 'underline');
+        };
+
+        for (var i in whitelist) {
+            if (origin === whitelist[i]) {
+                var content = $('#content');
+                var message1 = 'The current tab is in the whitelist ';
+                var message2 = '<br/>Go to the ';
+                var message3 = ' page if you wish to remove it.';
+                var check = $('<i>', {
+                    class: 'fa fa-check',
+                    css: {
+                        color: 'green'
+                    }
+                });
+                var settings = $('<span>', {
+                    html: 'settings',
+                    class: 'settings',
+                    css: {
+                        'color': '#2196f3'
+                    }
+                });
+                // Add onclick and hover functions
+                settings.hover(settingHover);
+                settings.click(openWhitelist);
+                // Append the content to the page
+                content.append(message1);
+                content.append(check);
+                content.append(message2);
+                content.append(settings);
+                content.append(message3);
+            }
+        }
+    });
 });
 
 /* Add the options page js to the button */
-$('.header .settings').click(function() {
+$('.settings').click(function() {
     chrome.runtime.openOptionsPage();
 });

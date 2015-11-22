@@ -338,12 +338,12 @@ function updateUserData(changes, areaName) {
 
     if (changes.hasOwnProperty(BLOCK_COOKIES)) {
         change = changes[BLOCK_COOKIES];
-        stopleak[BLOCK_COOKIES] = change.newValue || true;
+        stopleak[BLOCK_COOKIES] = change.newValue;
     }
 
     if (changes.hasOwnProperty(BLOCK_URL_LEAK)) {
         change = changes[BLOCK_URL_LEAK];
-        stopleak[BLOCK_URL_LEAK] = change.newValue || true;
+        stopleak[BLOCK_URL_LEAK] = change.newValue;
     }
 }
 
