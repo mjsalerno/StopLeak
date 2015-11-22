@@ -653,6 +653,9 @@ $(document).ready(function() {
                         'color': '#2196f3'
                     }
                 });
+                // greyscale the image
+                $('.logo').css('filter', 'grayscale(100%)');
+                $('.logo').css('webkitFilter', 'grayscale(100%)');
                 // Add onclick and hover functions
                 settings.hover(settingHover);
                 settings.click(openWhitelist);
@@ -662,6 +665,8 @@ $(document).ready(function() {
                 content.append(message2);
                 content.append(settings);
                 content.append(message3);
+                // Done searching the whitelist
+                break;
             }
         }
     });
