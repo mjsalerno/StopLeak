@@ -225,7 +225,7 @@ function onBeforeRequest(request, sourceOrigin, destOrigin) {
     request.piiFound = Object.keys(request.piiFound);
     if (redirectUrl) {
         stopleak.tabCache.incBlockCount(request.tabId);
-        console.log('[Redirect] ' + destOrigin + ' reasons:', request.blockReasons);
+        console.log('[Redirect]', request, 'reasons', request.blockReasons);
         console.log('[Redirect] PII found:', request.piiFound);
         return {redirectUrl: redirectUrl};
     } else if (cancel) {
@@ -233,7 +233,7 @@ function onBeforeRequest(request, sourceOrigin, destOrigin) {
             stopleak.tabCache.saveRequest(request);
         }
         stopleak.tabCache.incBlockCount(request.tabId);
-        console.log('[Cancel] ' + destOrigin + ' reasons:', request.blockReasons);
+        console.log('[Cancel]', request, 'reasons', request.blockReasons);
         console.log('[Cancel] PII found:', request.piiFound);
         return {cancel: true};
     }
@@ -285,7 +285,7 @@ function onBeforeSendHeaders(request, sourceOrigin, destOrigin) {
             stopleak.tabCache.saveRequest(request);
         }
         stopleak.tabCache.incBlockCount(request.tabId);
-        console.log('[Cancel] ' + destOrigin + ' reasons:', request.blockReasons);
+        console.log('[Cancel]', request, 'reasons', request.blockReasons);
         console.log('[Cancel] PII found:', request.piiFound);
         return {cancel: true};
     } else if (headersChanged) {
