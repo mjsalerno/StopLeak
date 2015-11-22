@@ -518,12 +518,17 @@ function convertRequests(requests) {
         for (var k in request.piiFound) {
             pii.push(request.piiFound[k]);
         }
+        // Get a list of all the headers
+        var headers = [];
+        for (var l in request.requestHeaders) {
+            headers.push(request.requestHeaders[l]);
+        }
         // Put the results in the correct format
         var results = {
             rid: id,
             reasons: reasons,
             pii: pii,
-            headers: request.requestHeaders,
+            headers: headers,
             extras: extras
         };
         // Add the details about the request
