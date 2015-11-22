@@ -1,6 +1,8 @@
 'use strict';
 /* global $, BLOCKED_STRINGS, SETTINGS, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
 
+var bgPage = chrome.extension.getBackgroundPage();
+
 function removeColumn(evt) {
     var element = $(evt.target);
     var parent = element.parent().parent();
@@ -52,6 +54,34 @@ function buildTableRow(args) {
     row.append(rmvCol);
     // Add the new row to the table
     customSettings.before(row);
+}
+function addStringToActionUI(origin, idd, action) {
+    var table = document.getElementById(idd);
+    var row = table.insertRow(0);
+    //row.id = str;
+    var cell0 = row.insertCell(0);
+    var cell1 = row.insertCell(1);
+    cell1.innerHTML = origin;
+
+    var btn = document.createElement('button');
+    btn.innerHTML = 'Delete';
+    btn.type = 'button';
+    btn.onclick = function() { // Note this is a function
+        chrome.storage.sync.get(null, function(items) {
+            var filters = items[SETTINGS];
+            if (filters.hasOwnProperty(origin)) {
+                delete filters[origin];
+                var a  = {};
+                a[SETTINGS] = filters;
+                chrome.storage.sync.set(a, function() {
+                    row.parentNode.removeChild(row);
+                });
+            } else {
+                console.log('could not remove the filter: ' + origin);
+            }
+        });
+    };
+    cell0.appendChild(btn);
 }
 
 function addStringToUI(str, idd, key) {
@@ -110,6 +140,21 @@ function refreshSetting(idd, key) {
     });
 }
 
+function refreshActionSetting(idd, action) {
+    chrome.storage.sync.get(null, function(items) {
+        if (!items[SETTINGS]) {
+            return;
+        }
+        var filters = items[SETTINGS];
+        document.getElementById(idd).innerHTML = '';
+        for (var orig in filters) {
+            if (filters[orig] === action) {
+                addStringToActionUI(orig, idd, action);
+            }
+        }
+    });
+}
+
 function refreshCustSettings() {
     chrome.storage.sync.get(null, function(items) {
         if (!items[CUSTOM_SETTINGS]) {
@@ -136,23 +181,25 @@ function addSetting(inId, tblId, key) {
         return;
     }
 
-    updateSyncSetting(key, {val: newFilter}, function() {
+    bgPage.updateSyncSetting(key, {val: newFilter}, function() {
         refreshSetting(tblId, key);
     },  null);
 }
 
-function addActionSetting(inId, tblId, key) {
+function addActionSetting(inId, tblId, action) {
     var newOrigin = document.getElementById(inId).value;
     if (!newOrigin) {
         return;
     }
 
     // TODO: Tell user on failure.
-    updateSyncSetting(key, {val: newOrigin}, function() {
-        refreshSetting(tblId, key);
-        var staleEntry = document.getElementById(newOrigin);
-        staleEntry.remove();
-    },  null);
+    bgPage.updateSyncSetting(SETTINGS, {val: newOrigin, action: action},
+        function() {
+            refreshActionSetting(tblId, action);
+            //var staleEntry = document.getElementById(newOrigin);
+            //staleEntry.remove();
+        },
+    null);
 }
 
 function addActions() {
@@ -222,7 +269,7 @@ function addCustomSetting() {
         action: action.val()
     };
 
-    updateSyncSetting(CUSTOM_SETTINGS, args, function() {
+    bgPage.updateSyncSetting(CUSTOM_SETTINGS, args, function() {
         buildTableRow(args);
     }, null);
 
@@ -239,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
     };
     document.getElementById('add-allow-btn').onclick = function() {
-        addActionSetting('new-allow', 'allow-tbl', SETTINGS);
+        addActionSetting('new-allow', 'allow-tbl', ACTION_ALLOW);
     };
     document.getElementById('add-deny-btn').onclick = function() {
         addActionSetting('new-deny', 'deny-tbl', SETTINGS);
