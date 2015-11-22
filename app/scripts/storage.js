@@ -1,7 +1,7 @@
 /**
  * Created by michael on 11/15/15.
  */
-/* global chrome, BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS,
+/* global chrome, BLOCKED_STRINGS, SETTINGS, CUSTOM_SETTINGS, SWWL,
 ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 'use strict';
 
@@ -10,10 +10,7 @@ var stopleak = stopleak || {};
 stopleak.noMatchRegex = new RegExp('a^', 'gi');
 stopleak.piiRegex = stopleak.noMatchRegex;
 stopleak[BLOCKED_STRINGS] = [];
-stopleak[DENY] = [];
-stopleak[ALLOW] = [];
-stopleak[SCRUB] = [];
-stopleak[SWWL] = [];
+stopleak[SETTINGS] = [];
 stopleak[CUSTOM_SETTINGS] = {};
 
 /**
@@ -26,44 +23,9 @@ function isEmpty(obj) {
     return Object.keys(obj).length === 0;
 }
 
-/**
- * Gets the settings from the in mem storage, formats the
- * cust settings as a list so the UI can easily read it.
- *
- * @param {String} setting one of the constants (e.g. CUSTOM_SETTINGS)
- * @returns {Array}
- */
-function getSyncStorage(setting) {
-    var rtn = [];
-
-    switch (setting) {
-        case CUSTOM_SETTINGS:
-            for (var src in stopleak[CUSTOM_SETTINGS]) {
-                for (var dst in stopleak[CUSTOM_SETTINGS][src]) {
-                    rtn.push([src, dst, stopleak[CUSTOM_SETTINGS][src][dst]]);
-                }
-            }
-            break;
-
-        case ALLOW:
-        /* falls through */
-        case SCRUB:
-        /* falls through */
-        case DENY:
-        /* falls through */
-        case SWWL:
-        /* falls through */
-        case BLOCKED_STRINGS:
-            rtn =  stopleak[setting];
-            break;
-
-        default:
-            console.log('do not know how to get: ' + setting);
-            rtn = null;
-            break;
-    }
-
-    return rtn;
+function isValidAction(action) {
+    return action === ACTION_ALLOW || action === ACTION_DENY ||
+        action === ACTION_SCRUB;
 }
 
 /**
@@ -117,12 +79,24 @@ function delSyncStorage(setting, map, onSuccess, onError) {
             }
             break;
 
-        case ALLOW:
-            /* falls through */
-        case SCRUB:
-            /* falls through */
-        case DENY:
-            /* falls through */
+        case SETTINGS:
+            if (!map.val) {
+                onError();
+                console.log('storage: missing key in map, val');
+                return;
+            }
+
+            if (stopleak[SETTINGS].hasOwnProperty(map.val)) {
+                delete stopleak[SETTINGS][map.val];
+                if (onSuccess !== null) {
+                    onSuccess();
+                } else {
+                    if (onError !== null) {
+                        onError();
+                    }
+                }
+            }
+            break;
         case SWWL:
             /* falls through */
         case BLOCKED_STRINGS:
@@ -188,12 +162,27 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
             });
             break;
 
-        case ALLOW:
-        /* falls through */
-        case SCRUB:
-        /* falls through */
-        case DENY:
-        /* falls through */
+        case SETTINGS:
+            if (!map.val || !map.action) {
+                console.log('storage: missing val or action in map');
+                if (onError !== null) {
+                    onError();
+                }
+                return;
+            }
+
+            if (!isValidAction(map.action)) {
+                console.log('storage: not a valid action - ' + map.action);
+                if (onError !== null) {
+                    onError();
+                }
+                return;
+            }
+            stopleak[SETTINGS][map.val] = map.action;
+            if (onSuccess !== null) {
+                onSuccess();
+            }
+            break;
         case SWWL:
             // if not BLOCKED_STRINGS and not CUSTOM_SETTINGS
             if (map.val) {
@@ -265,11 +254,8 @@ function getUserData() {
             list[BLOCKED_STRINGS] : [];
         updatePiiRegex();
 
-        stopleak[DENY] = list.hasOwnProperty(DENY) ?  list[DENY] : [];
-
-        stopleak[ALLOW] = list.hasOwnProperty(ALLOW) ?  list[ALLOW] : [];
-
-        stopleak[SCRUB] = list.hasOwnProperty(SCRUB) ?  list[SCRUB] : [];
+        stopleak[SETTINGS] = list.hasOwnProperty(SETTINGS) ?
+            list[SETTINGS] : [];
 
         stopleak[SWWL] = list.hasOwnProperty(SWWL) ?  list[SWWL] : [];
 
@@ -295,19 +281,9 @@ function updateUserData(changes, areaName) {
         updatePiiRegex();
     }
 
-    if (changes.hasOwnProperty(ALLOW)) {
-        change = changes[ALLOW];
-        stopleak[ALLOW] = change.newValue || [];
-    }
-
-    if (changes.hasOwnProperty(DENY)) {
-        change = changes[DENY];
-        stopleak[DENY] = change.newValue || [];
-    }
-
-    if (changes.hasOwnProperty(SCRUB)) {
-        change = changes[SCRUB];
-        stopleak[SCRUB] = change.newValue || [];
+    if (changes.hasOwnProperty(SETTINGS)) {
+        change = changes[SETTINGS];
+        stopleak[SETTINGS] = change.newValue || {};
     }
 
     if (changes.hasOwnProperty(SWWL)) {
@@ -335,15 +311,15 @@ stopleak.getReqAction = function(src, dst) {
 
     var i;
     var len;
+    var action;
 
     //check cust settings
     if (stopleak[CUSTOM_SETTINGS].hasOwnProperty(src) &&
         stopleak[CUSTOM_SETTINGS][src].hasOwnProperty(dst)) {
 
-        var action = stopleak[CUSTOM_SETTINGS][src][dst];
+        action = stopleak[CUSTOM_SETTINGS][src][dst];
 
-        if (action !== ACTION_ALLOW || action !== ACTION_DENY ||
-            action !== ACTION_SCRUB) {
+        if (!isValidAction(action)) {
 
             console.log('storage: invalid custom setting: ' + action);
             return ACTION_UNKNOWN;
@@ -360,27 +336,14 @@ stopleak.getReqAction = function(src, dst) {
         }
     }
 
-    //check deny list
-    len = stopleak[DENY].length;
-    for (i = 0; i < len; i++) {
-        if (stopleak[DENY][i] === dst) {
-            return ACTION_DENY;
-        }
-    }
-
-    //check scrub list
-    len = stopleak[SCRUB].length;
-    for (i = 0; i < len; i++) {
-        if (stopleak[SCRUB][i] === dst) {
-            return ACTION_SCRUB;
-        }
-    }
-
-    //check allow list
-    len = stopleak[ALLOW].length;
-    for (i = 0; i < len; i++) {
-        if (stopleak[ALLOW][i] === dst) {
-            return ACTION_ALLOW;
+    //check settings map list
+    if (stopleak[SETTINGS].hasOwnProperty(dst)) {
+        action = stopleak[SETTINGS][dst];
+        if (isValidAction(action)) {
+            return action;
+        } else {
+            console.log('storage: got bad action - ' + action);
+            return ACTION_UNKNOWN;
         }
     }
 

@@ -1,5 +1,5 @@
 'use strict';
-/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
+/* global $, BLOCKED_STRINGS, SWWL, SETTINGS, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
 
 function removeColumn(evt) {
     var element = $(evt.target);
@@ -83,19 +83,6 @@ function addStringToUI(str, idd, key) {
     cell0.appendChild(btn);
 }
 
-/*
-function addStringToCS(src, dst, action) {
-    var table = document.getElementById('cs-tbl');
-    var row = table.insertRow(0);
-    var cell0 = row.insertCell(0);
-    var cell1 = row.insertCell(1);
-    var cell2 = row.insertCell(2);
-    cell0.innerHTML = src;
-    cell1.innerHTML = dst;
-    cell2.innerHTML = action;
-}
-*/
-
 function refreshSetting(idd, key) {
     chrome.storage.sync.get(null, function(items) {
         if (!items[key]) {
@@ -135,24 +122,13 @@ function addSetting(inId, tblId, key) {
         return;
     }
 
+    if (key === SETTINGS) {
+
+    }
+
     updateSyncSetting(key, {val: newFilter}, function() {
         refreshSetting(tblId, key);
     },  null);
-    /*chrome.storage.sync.get(null, function(items) {
-        var filters = [];
-        if (items[key]) {
-            filters = items[key];
-            if (filters.indexOf(newFilter) > -1) {
-                return;
-            }
-        }
-        filters.push(newFilter);
-        var a  = {};
-        a[key] = filters;
-        chrome.storage.sync.set(a, function() {
-            refreshSetting(tblId, key);
-        });
-    });*/
 }
 
 function addActions() {
@@ -176,19 +152,9 @@ function clearFilters() {
     document.getElementById('filter-tbl').innerHTML = '';
 }
 
-function clearAllows() {
-    chrome.storage.sync.remove(ALLOW);
+function clearSettings() {
+    chrome.storage.sync.remove(SETTINGS);
     document.getElementById('allow-tbl').innerHTML = '';
-}
-
-function clearDeny() {
-    chrome.storage.sync.remove(DENY);
-    document.getElementById('deny-tbl').innerHTML = '';
-}
-
-function clearScrub() {
-    chrome.storage.sync.remove(SCRUB);
-    document.getElementById('scrub-tbl').innerHTML = '';
 }
 
 function clearSWWL() {
@@ -238,14 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('add-filter-btn').onclick = function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
     };
-    document.getElementById('add-allow-btn').onclick = function() {
-        addSetting('new-allow', 'allow-tbl', ALLOW);
-    };
-    document.getElementById('add-deny-btn').onclick = function() {
-        addSetting('new-deny', 'deny-tbl', DENY);
-    };
-    document.getElementById('add-scrub-btn').onclick = function() {
-        addSetting('new-scrub', 'scrub-tbl', SCRUB);
+    document.getElementById('add-settings-btn').onclick = function() {
+        addSetting('new-setting', 'settings-tbl', SETTINGS);
     };
     document.getElementById('add-swwl-btn').onclick = function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
@@ -253,17 +213,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // document.getElementById('add-cs-btn').onclick = addCustSetting;
     document.getElementById('add-cs-btn').onclick = addCustomSetting;
     document.getElementById('clear-filter-btn').onclick = clearFilters;
-    document.getElementById('clear-allow-btn').onclick = clearAllows;
-    document.getElementById('clear-deny-btn').onclick = clearDeny;
-    document.getElementById('clear-scrub-btn').onclick = clearScrub;
+    document.getElementById('clear-settings-btn').onclick = clearSettings;
     document.getElementById('clear-swwl-btn').onclick = clearSWWL;
     document.getElementById('clear-cs-btn').onclick = clearCustSettings;
     //var filters = ['john', 'smith', 'john smith'];
     //chrome.storage.sync.set({BLOCKED_STRINGS:filters});
     refreshSetting('filter-tbl', BLOCKED_STRINGS);
-    refreshSetting('allow-tbl', ALLOW);
-    refreshSetting('deny-tbl', DENY);
-    refreshSetting('scrub-tbl', SCRUB);
+    refreshSetting('settings-tbl', SETTINGS);
     refreshSetting('swwl-tbl', SWWL);
     refreshCustSettings();
 
