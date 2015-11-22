@@ -146,6 +146,20 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
 
     switch (setting) {
         case CUSTOM_SETTINGS:
+            try {
+                u = new URL(map.src);
+                map.src = u.origin;
+                u = new URL(map.dst);
+                map.dst = u.origin;
+                console.log('storage: adding addingURL: ', map.src, map.dst);
+            } catch (err) {
+                console.log('storage: url not correct format - ' + map.val);
+                if (onError !== null) {
+                    onError();
+                }
+                return;
+            }
+
             chrome.storage.sync.get(null, function(items) {
                 var custSett = items[CUSTOM_SETTINGS] || {};
                 var inCustSett = custSett[map.src] || {};

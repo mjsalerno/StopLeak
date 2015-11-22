@@ -1,12 +1,15 @@
 'use strict';
 /*global $, chrome, document, updateSyncSetting, ACTION_ALLOW, ACTION_DENY,
-SETTINGS, ACTION_SCRUB, ACTION_UNKNOWN*/
+CUSTOM_SETTINGS, ACTION_SCRUB, ACTION_UNKNOWN*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
 var DB_HOST = 'ip.roofis0.net';
 var DB_PORT = '667';
+
+//the current tab so we can get the url for custom settings
+var currentTab = {};
 
 /**
  * Sends a request to the server.
@@ -208,8 +211,9 @@ function selectOption(e) {
     // If successfully sync'd then tell server of our choice
     sendTallyRequest(origin, option);
     var bgPage = chrome.extension.getBackgroundPage();
-    bgPage.updateSyncSetting(SETTINGS,
-        {val: origin, action: optionToStorage(option)}, null, null);
+    bgPage.updateSyncSetting(CUSTOM_SETTINGS,
+        {src: currentTab.url, dst: origin, action: optionToStorage(option)},
+        null, null);
 }
 
 /**
@@ -609,7 +613,7 @@ $(document).ready(function() {
     // Retrieve the current tabId to ask for all our blocked requests.
     var query = {active: true, currentWindow: true};
     chrome.tabs.query(query, function(tabs) {
-        var currentTab = tabs[0];
+        currentTab = tabs[0];
         // Now just grab the requests from the background page
         chrome.runtime.getBackgroundPage(function(backgroundPage) {
             var requests = backgroundPage.getBlockedRequests(currentTab.id);
