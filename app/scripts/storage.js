@@ -1,7 +1,8 @@
 /**
  * Created by michael on 11/15/15.
  */
-/* global chrome, BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS */
+/* global chrome, BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS,
+ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 'use strict';
 
 var stopleak = stopleak || {};
@@ -12,11 +13,6 @@ stopleak[ALLOW] = [];
 stopleak[SCRUB] = [];
 stopleak[SWWL] = [];
 stopleak[CUSTOM_SETTINGS] = {};
-
-const ACTION_ALLOW = 'allow';
-const ACTION_DENY = 'deny';
-const ACTION_SCRUB = 'scrub';
-const ACTION_UNKNOWN = 'unknown';
 
 /**
  * Checks if an object has no keys
