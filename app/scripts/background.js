@@ -34,15 +34,14 @@ function addBlockMessage(request, message) {
 }
 
 /**
- * Checks whether this object contains any PII data and accumulates the found
+ * Checks whether this string contains any PII data and accumulates the found
  * information into the request.
  *
  * @param {object} request The request associated with this object..
- * @param {*} object The object to screen for PII.
- * @returns {boolean} True if the object contains PII data.
+ * @param {string} str The string to screen for PII.
+ * @returns {boolean} True if the string contains PII data.
  */
-function containsPIIdata(request, object) {
-    var str = JSON.stringify(object);
+function strContainsPIIdata(request, str) {
     var matched = str.match(stopleak.piiRegex);
     if (matched === null) {
         return false;
@@ -52,6 +51,19 @@ function containsPIIdata(request, object) {
         request.piiFound[matched[i]] = 1;
     }
     return true;
+}
+
+/**
+ * Checks whether this object contains any PII data and accumulates the found
+ * information into the request.
+ *
+ * @param {object} request The request associated with this object..
+ * @param {*} object The object to screen for PII.
+ * @returns {boolean} True if the object contains PII data.
+ */
+function objContainsPIIdata(request, object) {
+    var str = JSON.stringify(object);
+    return strContainsPIIdata(request, str);
 }
 
 /**
@@ -78,7 +90,7 @@ function piiInRequestUrl(request) {
         piiFound = true;
     }
     // any PII data is leaking in this request
-    if (containsPIIdata(request, afterDomain)) {
+    if (strContainsPIIdata(request, afterDomain)) {
         piiFound = true;
     }
     return piiFound;
@@ -91,9 +103,10 @@ function piiInRequestUrl(request) {
  * @returns {string} The scrubbed url.
  */
 function scrubRequestUrl(request) {
-    var randLength = stopleak.getRandomIntInclusive(4, 20);
-    var psuedoRandomStr = stopleak.getPseudoRandomString(randLength);
-    return request.url.replace(stopleak.piiRegex, psuedoRandomStr);
+    return request.url.replace(stopleak.piiRegex, function() {
+        var randLength = stopleak.getRandomIntInclusive(4, 20);
+        return stopleak.getPseudoRandomString(randLength);
+    });
 }
 
 /**
@@ -104,18 +117,38 @@ function scrubRequestUrl(request) {
  */
 function piiInRequestBody(request) {
     var requestBody = stopleak.getRequestBody(request);
-    return containsPIIdata(request, requestBody);
+    return objContainsPIIdata(request, requestBody);
 }
 
 /**
- * Scrubs the HTTP request headers.
+ * Delete the HTTP request headers that contain PII data.
  *
  * @param {object} request The request to scrub.
  * @returns {boolean} True if the headers have changed.
  */
 function scrubRequestHeaders(request) {
-    // TODO: actually scrub headers
-    return true;
+    var headersChanged = false;
+    var requestHeaders = request.requestHeaders;
+
+    for (var i = requestHeaders.length - 1; i >= 0; --i) {
+        var header = requestHeaders[i];
+        var headerValue = stopleak.getHeaderValue(header);
+        switch (header.name) {
+            case 'Cookie': // fall through
+            case 'Referer':
+                // Just drop, since modifying cookies might be unreliable
+                requestHeaders.splice(i, 1);
+                headersChanged = true;
+                break;
+            default:
+                if (strContainsPIIdata(request, header.name) ||
+                    strContainsPIIdata(request, headerValue)) {
+                    headersChanged = true;
+                    requestHeaders.splice(i, 1);
+                }
+        }
+    }
+    return headersChanged;
 }
 
 /**
@@ -127,6 +160,7 @@ function scrubRequestHeaders(request) {
 function piiInRequestHeaders(request) {
     var piiFound = false;
     var requestHeaders = request.requestHeaders;
+
     for (var i = requestHeaders.length - 1; i >= 0; --i) {
         var header = requestHeaders[i];
         var headerValue = stopleak.getHeaderValue(header);
@@ -144,16 +178,16 @@ function piiInRequestHeaders(request) {
             // JavaScript can add arbitrary headers to XMLHttpRequests using
             // the setRequestHeader() method.
             // w3.org/TR/XMLHttpRequest/#the-setrequestheader-method
-            if (containsPIIdata(request, header.name + ':' + headerValue)) {
+            if (strContainsPIIdata(request, header.name + ':' + headerValue)) {
                 piiFound = true;
             }
         }
     }
     // Fake the ETag header
-    requestHeaders.push({
-        name: 'If-None-Match',
-        value: stopleak.getPseudoRandomString(32)
-    });
+    //requestHeaders.push({
+    //    name: 'If-None-Match',
+    //    value: stopleak.getPseudoRandomString(32)
+    //});
     return piiFound;
 }
 
