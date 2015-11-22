@@ -113,13 +113,21 @@ function getWOTRank(origin, element) {
         dataType: 'json',
         success: function(data) {
             //put data back up in that function later
+            var icon = null;
             if (!(hostname in data) || data[hostname][0] === undefined) {
                 element.html(' WOT: None');
+                icon = $('<img>', {
+                    class: 'wot-image',
+                    src: 'images/30_unknown.png',
+                    alt: 'unknown ranking',
+                    title: 'WOT score: None'
+                });
+                element.append(icon);
             } else {
                 var rank = data[hostname][0][0];
                 var wot = getWOTString(rank);
                 element.html(' WOT: ' + wot[0]);
-                var icon = $('<img>', {
+                icon = $('<img>', {
                     class: 'wot-image',
                     src: wot[1],
                     alt: wot[0],
@@ -147,26 +155,34 @@ function optionToStorage(option) {
     }
 }
 
-function fade(e) {
+function selectOption(e) {
     var element = $(e.target);
     var parent = element.parent().parent().parent();
     // Get the type of option selected
     var option = element.parent().attr('title');
-    var origin = parent.find('.hostname').data('origin');
-    // Inform background of our decesion
-    console.log('option: ' + option);
-    console.log('hostname: ' + origin);
-
+    var origin = parent.find('.origin').data('origin');
+    // Reset all colors to grey
+    parent.find('.option .fa').css('color', '#B8B8B8');
+    // Now set the selected color
+    switch (option) {
+        case 'allow':
+            element.css('color', 'green');
+            break;
+        case 'block':
+            element.css('color', 'red');
+            break;
+        case 'scrub':
+            element.css('color', 'orange');
+            break;
+        default:
+            console.log('Unknown option selected: ' + option);
+            break;
+    }
     // If successfully sync'd then tell server of our choice
     sendTallyRequest(origin, option);
     var bgPage = chrome.extension.getBackgroundPage();
     bgPage.updateSyncSetting(optionToStorage(option), {val: origin},
-        function() {
-        parent.fadeOut(400, function() {
-            // Remove the item from the actual page.
-            parent.parent().remove(parent);
-        });
-    }, null);
+                             null, null);
 }
 
 function showRequests(e) {
@@ -191,7 +207,7 @@ function showRequests(e) {
 
 function showSubRequest() {
     var element = $(this);
-    console.log(element);
+    // console.log(element);
     if (element.find('.request').length) {
         var rbody = element.find('.request');
         var arrow = element.find('.fa');
@@ -306,7 +322,9 @@ function updateUI(origin, requests) {
     var acceptIcon = $('<i>', {
         class: 'fa fa-check'
     });
-    var acceptCaption = $('<span>');
+    var acceptCaption = $('<span>', {
+        class: 'option-stats'
+    });
     // acceptCaption.html(actions.allow[1] + '%');
     accept.html(' ');
     accept.append(acceptIcon);
@@ -314,14 +332,15 @@ function updateUI(origin, requests) {
 
     // Build the block button
     var block = $('<span>', {
-        class: 'option block'
+        class: 'option block',
+        title: 'block'
     });
     var blockIcon = $('<i>', {
         class: 'fa fa-times',
-        title: 'block'
     });
-    var blockCaption = $('<span>');
-    // blockCaption.html(actions.block[1] + '%');
+    var blockCaption = $('<span>', {
+        class: 'option-stats'
+    });
 
     block.html(' ');
     block.append(blockIcon);
@@ -335,8 +354,9 @@ function updateUI(origin, requests) {
     var scrubIcon = $('<i>', {
         class: 'fa fa-eraser'
     });
-    var scrubCaption = $('<span>');
-    // scrubCaption.html(actions.scrub[1] + '%');
+    var scrubCaption = $('<span>', {
+        class: 'option-stats'
+    });
 
     scrub.html(' ');
     scrub.append(scrubIcon);
@@ -413,9 +433,9 @@ function updateUI(origin, requests) {
 
     // FIXME: Make these buttons communicate with python server
     // FIXME: or the background js page?
-    acceptIcon.click(fade);
-    blockIcon.click(fade);
-    scrubIcon.click(fade);
+    acceptIcon.click(selectOption);
+    blockIcon.click(selectOption);
+    scrubIcon.click(selectOption);
     // Put together the whole object
     item.append(options);
     item.append(ranks);
@@ -442,7 +462,7 @@ function processRequests(requests) {
             continue;
         }
         origins.push(origin);
-        console.log(origin);
+        // console.log(origin);
         // Build the UI
         updateUI(origin, requests[origin]);
     }
@@ -495,7 +515,7 @@ function convertRequests(requests) {
             blockedRequests[origin] = [results];
         }
     }
-    console.log(blockedRequests);
+    // console.log(blockedRequests);
     return blockedRequests;
 }
 

@@ -37,6 +37,7 @@ i .fa {
 
 .origin {
     width: 40%;
+    font-size: .85em;
 }
 
 .origin:hover {
@@ -114,4 +115,8 @@ i .fa {
 .subrequest:hover {
     cursor: pointer;
     color: blue;
+}
+
+.option-stats {
+    font-size: small;
 }
