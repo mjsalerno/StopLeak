@@ -42,18 +42,16 @@ function addBlockMessage(request, message) {
  * @returns {boolean} True if the object contains PII data.
  */
 function containsPIIdata(request, object) {
-    var found = false;
-    var pii;
-    var lower = JSON.stringify(object).toLocaleLowerCase();
-    var len = stopleak[BLOCKED_STRINGS].length;
-    for (var i = 0; i < len; ++i) {
-        pii = stopleak[BLOCKED_STRINGS][i];
-        if (lower.indexOf(pii) !== -1) {
-            request.piiFound[pii] = 1;
-            found = true;
-        }
+    var str = JSON.stringify(object);
+    var matched = str.match(stopleak.piiRegex);
+    if (matched === null) {
+        return false;
     }
-    return found;
+    // Save matches
+    for (var i = 0; i < matched.length; ++i) {
+        request.piiFound[matched[i]] = 1;
+    }
+    return true;
 }
 
 /**
@@ -93,8 +91,9 @@ function piiInRequestUrl(request) {
  * @returns {string} The scrubbed url.
  */
 function scrubRequestUrl(request) {
-    // TODO: actually scrub url
-    return request.url;
+    var randLength = stopleak.getRandomIntInclusive(4, 20);
+    var psuedoRandomStr = stopleak.getPseudoRandomString(randLength);
+    return request.url.replace(stopleak.piiRegex, psuedoRandomStr);
 }
 
 /**
@@ -226,7 +225,7 @@ function onBeforeRequest(request, sourceOrigin, destOrigin) {
     request.piiFound = Object.keys(request.piiFound);
     if (redirectUrl) {
         stopleak.tabCache.incBlockCount(request.tabId);
-        console.log('[Redirect] reasons:', request.blockReasons);
+        console.log('[Redirect]', request, 'reasons', request.blockReasons);
         console.log('[Redirect] PII found:', request.piiFound);
         return {redirectUrl: redirectUrl};
     } else if (cancel) {
@@ -234,7 +233,7 @@ function onBeforeRequest(request, sourceOrigin, destOrigin) {
             stopleak.tabCache.saveRequest(request);
         }
         stopleak.tabCache.incBlockCount(request.tabId);
-        console.log('[Cancel] reasons:', request.blockReasons);
+        console.log('[Cancel]', request, 'reasons', request.blockReasons);
         console.log('[Cancel] PII found:', request.piiFound);
         return {cancel: true};
     }
@@ -286,8 +285,8 @@ function onBeforeSendHeaders(request, sourceOrigin, destOrigin) {
             stopleak.tabCache.saveRequest(request);
         }
         stopleak.tabCache.incBlockCount(request.tabId);
-        console.log('Cancelling request because:', request.blockReasons);
-        console.log('PII found:', Object.keys(request.piiFound));
+        console.log('[Cancel]', request, 'reasons', request.blockReasons);
+        console.log('[Cancel] PII found:', request.piiFound);
         return {cancel: true};
     } else if (headersChanged) {
         return {requestHeaders: request.requestHeaders};

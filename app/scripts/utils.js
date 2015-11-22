@@ -92,6 +92,17 @@ stopleak.arrayToString = function(buf) {
 };
 
 /**
+ * Returns a random integer between min (included) and max (included)
+ *
+ * @param {number} min
+ * @param {number} max
+ * @returns {number} Random number in range (min, max)
+ */
+stopleak.getRandomIntInclusive = function(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+/**
  * Returns a pseudo random string of length len.
  *
  * @param {number} len Length of the random string to generate (max 1099).
@@ -99,4 +110,14 @@ stopleak.arrayToString = function(buf) {
  */
 stopleak.getPseudoRandomString = function(len) {
     return (Math.random() * Math.random()).toString(31).slice(-len);
+};
+
+/**
+ * Escape regex special characters.
+ *
+ * @param {string} str Input string.
+ * @returns {string} Properly escaped string for regex.
+ */
+stopleak.escapeRegExp = function(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
