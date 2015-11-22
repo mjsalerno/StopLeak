@@ -141,6 +141,8 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
         console.log('storage: could not find that setting: ' + setting);
         return;
     }
+    var a;
+    var u;
 
     switch (setting) {
         case CUSTOM_SETTINGS:
@@ -169,6 +171,18 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
                 return;
             }
 
+            try {
+                u = new URL(map.val);
+                console.log('storage: adding addingURL: ', u);
+                map.val = u.origin;
+            } catch (err) {
+                console.log('storage: url not correct format - ' + map.val);
+                if (onError !== null) {
+                    onError();
+                }
+                return;
+            }
+
             if (!isValidAction(map.action)) {
                 console.log('storage: not a valid action - ' + map.action);
                 if (onError !== null) {
@@ -177,15 +191,20 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
                 return;
             }
             stopleak[SETTINGS][map.val] = map.action;
-            if (onSuccess !== null) {
-                onSuccess();
-            }
+
+            a  = {};
+            a[SETTINGS] = stopleak[SETTINGS];
+            chrome.storage.sync.set(a, function() {
+                if (onSuccess !== null) {
+                    onSuccess();
+                }
+            });
             break;
         case SWWL:
             // if not BLOCKED_STRINGS and not CUSTOM_SETTINGS
             if (map.val) {
                 try {
-                    var u = new URL(map.val);
+                    u = new URL(map.val);
                     console.log('storage: adding addingURL: ', u);
                     map.val = u.origin;
                 } catch (err) {
@@ -213,7 +232,7 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
             }
 
             stopleak[setting].push(map.val);
-            var a  = {};
+            a  = {};
             a[setting] = stopleak[setting];
             chrome.storage.sync.set(a, function() {
                 if (onSuccess !== null) {
