@@ -1,5 +1,6 @@
 'use strict';
-/*global $, chrome, document, updateSyncSetting, ALLOW, DENY, SCRUB, ACTION_UNKNOWN*/
+/*global $, chrome, document, updateSyncSetting, ACTION_ALLOW, ACTION_DENY,
+SETTINGS, ACTION_SCRUB, ACTION_UNKNOWN*/
 
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
@@ -165,11 +166,11 @@ function getWOTRank(origin, element) {
 function optionToStorage(option) {
     switch (option) {
         case 'allow':
-            return ALLOW;
+            return ACTION_ALLOW;
         case 'scrub':
-            return SCRUB;
+            return ACTION_SCRUB;
         case 'block':
-            return DENY;
+            return ACTION_DENY;
         default:
             return ACTION_UNKNOWN;
     }
@@ -207,8 +208,8 @@ function selectOption(e) {
     // If successfully sync'd then tell server of our choice
     sendTallyRequest(origin, option);
     var bgPage = chrome.extension.getBackgroundPage();
-    bgPage.updateSyncSetting(optionToStorage(option), {val: origin},
-                             null, null);
+    bgPage.updateSyncSetting(SETTINGS,
+        {val: origin, action: optionToStorage(option)}, null, null);
 }
 
 /**
