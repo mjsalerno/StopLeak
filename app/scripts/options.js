@@ -1,5 +1,7 @@
 'use strict';
-/* global $, BLOCKED_STRINGS, SETTINGS, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
+/* global $, BLOCKED_STRINGS, SETTINGS, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW,
+ACTION_DENY, ACTION_SCRUB, BLOCK_COOKIES, BLOCK_URL_LEAK,
+updateSyncSetting, delSyncStorage */
 
 var bgPage = chrome.extension.getBackgroundPage();
 
@@ -112,6 +114,10 @@ function addStringToUI(str, idd, key) {
         });
     };
     cell0.appendChild(btn);
+}
+
+function refreshCheckbox(id, setting) {
+    document.getElementById(id).checked = bgPage.stopleak[setting];
 }
 
 function refreshSetting(idd, key) {
@@ -272,6 +278,15 @@ function addCustomSetting() {
     action[0].selectedIndex = 0;
 }
 
+function checkboxClicked(id, setting) {
+    var checkedValue = $('#' + id).is(':checked');
+    var a = {};
+    a[setting] = checkedValue;
+    chrome.storage.sync.set(a, function() {
+        refreshCheckbox(id, setting);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('add-filter-btn').onclick = function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
@@ -288,6 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('add-swwl-btn').onclick = function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
     };
+
     // document.getElementById('add-cs-btn').onclick = addCustSetting;
     document.getElementById('add-cs-btn').onclick = addCustomSetting;
     document.getElementById('clear-filter-btn').onclick = clearFilters;
@@ -305,12 +321,23 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('clear-swwl-btn').onclick = clearSWWL;
     document.getElementById('clear-cs-btn').onclick = clearCustSettings;
 
+    //checkbok onclick
+    document.getElementById('cookie-checkbox').onclick = function() {
+        checkboxClicked('cookie-checkbox', BLOCK_COOKIES);
+    };
+    document.getElementById('url-checkbox').onclick = function() {
+        checkboxClicked('url-checkbox', BLOCK_URL_LEAK);
+    };
+
     refreshSetting('filter-tbl', BLOCKED_STRINGS);
     refreshActionSetting('allow-tbl', ACTION_ALLOW);
     refreshActionSetting('deny-tbl', ACTION_DENY);
     refreshActionSetting('scrub-tbl', ACTION_SCRUB);
     refreshSetting('swwl-tbl', SWWL);
     refreshCustSettings();
+
+    refreshCheckbox('cookie-checkbox', BLOCK_COOKIES);
+    refreshCheckbox('url-checkbox', BLOCK_URL_LEAK);
 
     addActions();
 });

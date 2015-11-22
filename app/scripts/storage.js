@@ -1,5 +1,6 @@
 /* global chrome, BLOCKED_STRINGS, SETTINGS, CUSTOM_SETTINGS, SWWL,
-ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
+ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN, BLOCK_COOKIES,
+BLOCK_URL_LEAK*/
 'use strict';
 
 var stopleak = stopleak || {};
@@ -10,6 +11,8 @@ stopleak[BLOCKED_STRINGS] = [];
 stopleak[SETTINGS] = {};
 stopleak[SWWL] = {};
 stopleak[CUSTOM_SETTINGS] = {};
+stopleak[BLOCK_COOKIES] = true;
+stopleak[BLOCK_URL_LEAK] = true;
 
 /**
  * Checks if an object has no keys
@@ -292,6 +295,12 @@ function getUserData() {
 
         stopleak[CUSTOM_SETTINGS] = list.hasOwnProperty(CUSTOM_SETTINGS) ?
             list[CUSTOM_SETTINGS] : {};
+
+        stopleak[BLOCK_COOKIES] = list.hasOwnProperty(BLOCK_COOKIES) ?
+            list[BLOCK_COOKIES] : true;
+
+        stopleak[BLOCK_URL_LEAK] = list.hasOwnProperty(BLOCK_URL_LEAK) ?
+            list[BLOCK_URL_LEAK] : true;
     });
 }
 
@@ -325,6 +334,16 @@ function updateUserData(changes, areaName) {
     if (changes.hasOwnProperty(CUSTOM_SETTINGS)) {
         change = changes[CUSTOM_SETTINGS];
         stopleak[CUSTOM_SETTINGS] = change.newValue || {};
+    }
+
+    if (changes.hasOwnProperty(BLOCK_COOKIES)) {
+        change = changes[BLOCK_COOKIES];
+        stopleak[BLOCK_COOKIES] = change.newValue;
+    }
+
+    if (changes.hasOwnProperty(BLOCK_URL_LEAK)) {
+        change = changes[BLOCK_URL_LEAK];
+        stopleak[BLOCK_URL_LEAK] = change.newValue;
     }
 }
 

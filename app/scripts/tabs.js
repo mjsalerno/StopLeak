@@ -42,8 +42,8 @@ TabCache.prototype.updateUrl = function(tabId, frameId, url) {
     }
     var tab = this.getTab(tabId);
     tab[frameId] = new URL(url);
-    console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
-        tab[frameId].origin);
+    //console.log('Updated tab:' + tabId + ' frame:' + frameId + ' origin: ' +
+    //    tab[frameId].origin);
 };
 
 /**

@@ -1,6 +1,6 @@
 'use strict';
 /* global chrome, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN,
-    BLOCKED_STRINGS */
+    BLOCKED_STRINGS, BLOCK_COOKIES, BLOCK_URL_LEAK */
 
 /**
  * StopLeak namespace.
@@ -83,7 +83,9 @@ function piiInRequestUrl(request) {
         piiFound = true;
     }
     var afterDomain = url.pathname + url.search + url.hash;
-    if (tabURL.hostname && afterDomain.indexOf(tabURL.hostname) !== -1) {
+    if (stopleak[BLOCK_URL_LEAK] &&
+        tabURL.hostname &&
+        afterDomain.indexOf(tabURL.hostname) !== -1) {
         // current hostname info is leaking in this request
         addBlockMessage(request, 'Info about the current domain (' +
             tabURL.hostname + ') is present in this request.');
@@ -91,6 +93,7 @@ function piiInRequestUrl(request) {
     }
     // any PII data is leaking in this request
     if (strContainsPIIdata(request, afterDomain)) {
+        addBlockMessage(request, 'Request\'s target URL contains PII!');
         piiFound = true;
     }
     return piiFound;
@@ -134,17 +137,25 @@ function scrubRequestHeaders(request) {
         var header = requestHeaders[i];
         var headerValue = stopleak.getHeaderValue(header);
         switch (header.name) {
-            case 'Cookie': // fall through
+            case 'Cookie':
+                if (stopleak[BLOCK_COOKIES] ||
+                    strContainsPIIdata(request, headerValue)) {
+                    requestHeaders.splice(i, 1);
+                    headersChanged = true;
+                }
+                break;
             case 'Referer':
-                // Just drop, since modifying cookies might be unreliable
-                requestHeaders.splice(i, 1);
-                headersChanged = true;
+                if (stopleak[BLOCK_URL_LEAK] ||
+                    strContainsPIIdata(request, headerValue)) {
+                    requestHeaders.splice(i, 1);
+                    headersChanged = true;
+                }
                 break;
             default:
                 if (strContainsPIIdata(request, header.name) ||
                     strContainsPIIdata(request, headerValue)) {
-                    headersChanged = true;
                     requestHeaders.splice(i, 1);
+                    headersChanged = true;
                 }
         }
     }
@@ -167,29 +178,37 @@ function piiInRequestHeaders(request) {
         var headerValue = stopleak.getHeaderValue(header);
         switch (header.name) {
             case 'Cookie':
-                requestHeaders.splice(i, 1);
-                addBlockMessage(request, 'This request had a cookie. ' +
-                    'Cookies are used to track and identify you across' +
-                    ' the web.');
-                piiFound = true;
+                if (stopleak[BLOCK_COOKIES]) {
+                    addBlockMessage(request, 'Request had a cookie. ' +
+                        'Cookies are used to track and identify you across' +
+                        ' the web.');
+                    piiFound = true;
+                } else if (strContainsPIIdata(request, headerValue)) {
+                    addBlockMessage(request, 'Request\'s cookie ' +
+                        'contains PII!');
+                    piiFound = true;
+                }
                 break;
             case 'Referer':
-                // Just drop and ignore referer
-                requestHeaders.splice(i, 1);
-                request.headersChanged = true;
+                if (strContainsPIIdata(request, headerValue)) {
+                    addBlockMessage(request, 'Request\'s "Referer" ' +
+                        'header contains PII!');
+                    piiFound = true;
+                } else {
+                    // Delete referer
+                    requestHeaders.splice(i, 1);
+                    request.headersChanged = true;
+                }
                 break;
             default:
                 if (strContainsPIIdata(request, header.name) ||
                     strContainsPIIdata(request, headerValue)) {
+                    addBlockMessage(request, 'Request\'s "' +
+                        header.name + '" header contains PII!');
                     piiFound = true;
                 }
         }
     }
-    // Fake the ETag header
-    //requestHeaders.push({
-    //    name: 'If-None-Match',
-    //    value: stopleak.getPseudoRandomString(32)
-    //});
     return piiFound;
 }
 
@@ -230,14 +249,11 @@ function onBeforeRequest(request, sourceOrigin, destOrigin) {
         case ACTION_ALLOW:
             break;
         case ACTION_SCRUB:
-            // TODO: We can only cancel the request OR modify the HTTP headers
-            // We can't modify the body of a request, e.g. formData, therefore
-            // if there is PII in the requestBody I think we should cancel.
             if (piiInRequestBody(request)) {
-                // Chrome
+                // Chrome does not let us change the requestBody
                 cancel = true;
             } else {
-                // TODO: redirect the url to a scrubbed one
+                // Redirect the url to a scrubbed one
                 var scrubbedUrl = scrubRequestUrl(request);
                 if (scrubbedUrl !== request.url) {
                     redirectUrl = scrubbedUrl;
@@ -250,7 +266,6 @@ function onBeforeRequest(request, sourceOrigin, destOrigin) {
             break;
         case ACTION_UNKNOWN:
             if (piiInRequest(request)) {
-                // TODO: notify user's tab with content popup
                 cancel = saveRequest = true;
             }
             break;
@@ -302,7 +317,7 @@ function onBeforeSendHeaders(request, sourceOrigin, destOrigin) {
             headersChanged = scrubRequestHeaders(request);
             break;
         case ACTION_DENY:
-            // Block only if PII is present
+            // Block only if PII is present`
             cancel = piiInRequestHeaders(request);
             break;
         case ACTION_UNKNOWN:
