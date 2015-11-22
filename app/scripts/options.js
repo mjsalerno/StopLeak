@@ -7,7 +7,8 @@ function removeColumn(evt) {
 
     var rows = parent.find('td');
 
-    delSyncStorage(CUSTOM_SETTINGS, {
+    var bgPage = chrome.extension.getBackgroundPage();
+    bgPage.delSyncStorage(CUSTOM_SETTINGS, {
         src: $(rows[0]).html(),
         dst: $(rows[1]).html(),
         action: $(rows[2]).html()

@@ -156,8 +156,9 @@ function fade(e) {
 
     // If successfully sync'd then tell server of our choice
     sendTallyRequest(origin, option);
-
-    updateSyncSetting(optionToStorage(option), {val: origin}, function() {
+    var bgPage = chrome.extension.getBackgroundPage();
+    bgPage.updateSyncSetting(optionToStorage(option), {val: origin},
+        function() {
         parent.fadeOut(400, function() {
             // Remove the item from the actual page.
             parent.parent().remove(parent);
