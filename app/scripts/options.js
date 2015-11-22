@@ -55,7 +55,7 @@ function buildTableRow(args) {
     // Add the new row to the table
     customSettings.before(row);
 }
-function addStringToActionUI(origin, idd, action) {
+function addStringToActionUI(origin, idd) {
     var table = document.getElementById(idd);
     var row = table.insertRow(0);
     //row.id = str;
@@ -149,7 +149,7 @@ function refreshActionSetting(idd, action) {
         document.getElementById(idd).innerHTML = '';
         for (var orig in filters) {
             if (filters[orig] === action) {
-                addStringToActionUI(orig, idd, action);
+                addStringToActionUI(orig, idd);
             }
         }
     });
@@ -289,10 +289,10 @@ document.addEventListener('DOMContentLoaded', function() {
         addActionSetting('new-allow', 'allow-tbl', ACTION_ALLOW);
     };
     document.getElementById('add-deny-btn').onclick = function() {
-        addActionSetting('new-deny', 'deny-tbl', SETTINGS);
+        addActionSetting('new-deny', 'deny-tbl', ACTION_DENY);
     };
     document.getElementById('add-scrub-btn').onclick = function() {
-        addActionSetting('new-scrub', 'scrub-tbl', SETTINGS);
+        addActionSetting('new-scrub', 'scrub-tbl', ACTION_SCRUB);
     };
     document.getElementById('add-swwl-btn').onclick = function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
@@ -305,12 +305,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('clear-scrub-btn').onclick = clearScrub;
     document.getElementById('clear-swwl-btn').onclick = clearSWWL;
     document.getElementById('clear-cs-btn').onclick = clearCustSettings;
-    //var filters = ['john', 'smith', 'john smith'];
-    //chrome.storage.sync.set({BLOCKED_STRINGS:filters});
+
     refreshSetting('filter-tbl', BLOCKED_STRINGS);
-    refreshSetting('allow-tbl', SETTINGS);
-    refreshSetting('deny-tbl', SETTINGS);
-    refreshSetting('scrub-tbl', SETTINGS);
+    refreshActionSetting('allow-tbl', ACTION_ALLOW);
+    refreshActionSetting('deny-tbl', ACTION_DENY);
+    refreshActionSetting('scrub-tbl', ACTION_SCRUB);
     refreshSetting('swwl-tbl', SWWL);
     refreshCustSettings();
 
