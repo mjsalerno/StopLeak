@@ -36,15 +36,17 @@
     <table id="filter-tbl">
     </table>
 
-    <input type="checkbox" id="cookie-checkbox">Block Cookies<br>
-    <input type="checkbox" id="url-checkbox">Block URL Leaks <br>
+    <input type="checkbox" id="cookie-checkbox">
+    <label for="cookie-checkbox">Block Cookies</label><br>
+    <input type="checkbox" id="url-checkbox">
+    <label for="url-checkbox">Block URL Leaks</label><br>
 
     <hr>
 
     Allow Requests List:<br>
-    <!--Allow requests going towards the following sites even
-    if they contain PII<br> -->
-    <input type="text" id="new-allow">
+    Allow requests going towards the following sites even
+    if they contain PII<br>
+    <input type="text" id="new-allow" placeholder="Destination url">
     <button id="add-allow-btn">Add</button>
     <button id="clear-allow-btn">Clear</button><br>
     <table id="allow-tbl">
@@ -53,8 +55,9 @@
     <hr>
 
     Deny Requests List:<br>
-    <!-- Block requests that go towards the following sites if they contain PII<br> -->
-    <input type="text" id="new-deny">
+    Block requests that go towards the following sites even if they no not
+    contain PII<br>
+    <input type="text" id="new-deny" placeholder="Destination url">
     <button id="add-deny-btn">Add</button>
     <button id="clear-deny-btn">Clear</button><br>
     <table id="deny-tbl">
@@ -63,8 +66,9 @@
     <hr>
 
     Scrub Requests List:<br>
-    <!-- Replace PII data with random strings going towards the following sites<br> -->
-    <input type="text" id="new-scrub">
+    Delete or replace PII data with random strings going towards the following
+    sites<br>
+    <input type="text" id="new-scrub" placeholder="Destination url">
     <button id="add-scrub-btn">Add</button>
     <button id="clear-scrub-btn">Clear</button><br>
     <table id="scrub-tbl">
@@ -73,8 +77,8 @@
     <hr>
 
     Site Wide White List:<br>
-    <!-- Disable extention on the following sites<br> -->
-    <input type="text" id="new-swwl">
+    Disable extention on the following sites<br>
+    <input type="text" id="new-swwl" placeholder="Destination url">
     <button id="add-swwl-btn">Add</button>
     <button id="clear-swwl-btn">Clear</button><br>
     <table id="swwl-tbl">
