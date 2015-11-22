@@ -4,55 +4,30 @@
 var ALEXA_URL = 'https://data.alexa.com/data?cli=10&url=';
 var WOT_URL = 'http://api.mywot.com/0.4/public_link_json2?hosts=';
 var WOT_KEY = '1d95d1752c1fb408f2bfcdada2fae12f8185ec64';
-var DB_HOST = '127.0.0.1';
-var DB_PORT = '8765';
-
-/* The websocket for popup to server communication. */
-var socket = null;
-/* Deferred Object to send only when open. */
-var socketDeferred = $.Deferred();
-
-/**
- * Setup the WebSocket connection to the server.
- *
- * @param {Deferred} socketDeferred Deferred Object used to send only when open.
- * @param {function} onmessage function(event), the onmessage callback.
- * @returns {WebSocket}
- */
-function setupWebSocket(socketDeferred, onmessage) {
-    var socket = new WebSocket('ws://' + DB_HOST + ':' + DB_PORT);
-
-    socket.onopen = function() {
-        socketDeferred.resolve();
-    };
-    socket.onerror = function(status) {
-        socketDeferred.reject(status);
-    };
-    socket.onclose = function(status) {
-        socketDeferred.reject(status);
-    };
-    socket.onmessage = onmessage;
-    return socket;
-}
+var DB_HOST = 'ip.roofis0.net';
+var DB_PORT = '667';
 
 /**
  * Sends a request to the server.
  *
  * @param {object} request A request object to Stringify then send.
+ * @param {function} onmessage function(event), the onmessage callback.
  */
-function webSocketSend(request) {
+function webSocketSend(request, onmessage) {
     var payload = JSON.stringify(request);
-    $.when(socketDeferred).then(
-        function() {
-            // Resolve handler, we're connected
-            console.log('[WebSocket] request: ' + payload);
-            socket.send(payload);
-        },
-        function(event) {
-            // Reject handler
-            console.log('[WebSocket] failed: ', event);
-        }
-    );
+    var socket = new WebSocket('wss://' + DB_HOST + ':' + DB_PORT);
+
+    socket.onopen = function() {
+        console.log('[WebSocket] request: ' + payload);
+        socket.send(payload);
+    };
+    socket.onerror = function(status) {
+        console.log('[WebSocket] failed: ', status);
+    };
+    socket.onclose = function() {
+        console.log('[WebSocket] closed');
+    };
+    socket.onmessage = onmessage;
 }
 
 /**
@@ -60,8 +35,9 @@ function webSocketSend(request) {
  * of domains.
  *
  * @param {object} domains List of domain name strings.
+ * @param {function} onmessage function(event), the onmessage callback.
  */
-function sendCountsRequest(domains) {
+function sendCountsRequest(domains, onmessage) {
     // Build the payload
     var request = {
         'function': 'get_counts',
@@ -69,7 +45,7 @@ function sendCountsRequest(domains) {
             'domains': domains
         }
     };
-    webSocketSend(request);
+    webSocketSend(request, onmessage);
 }
 
 /**
@@ -84,11 +60,11 @@ function sendTallyRequest(origin, choice) {
     var request = {
         'function': 'tally',
         'args': {
-            'domains': origin,
+            'domain': origin,
             'choice': choice
         }
     };
-    webSocketSend(request);
+    webSocketSend(request, null);
 }
 
 function getWOTString(rank) {
@@ -180,11 +156,12 @@ function fade(e) {
     // Inform background of our decesion
     console.log('option: ' + option);
     console.log('hostname: ' + origin);
-    chrome.extension.sendMessage({method: 'option_selected',
-                                  option: option,
-                                  hostname: origin});
 
-    updateSyncSetting(optionToStorage(option), {val: origin}, function() {
+    // If successfully sync'd then tell server of our choice
+    sendTallyRequest(origin, option);
+    var bgPage = chrome.extension.getBackgroundPage();
+    bgPage.updateSyncSetting(optionToStorage(option), {val: origin},
+        function() {
         parent.fadeOut(400, function() {
             // Remove the item from the actual page.
             parent.parent().remove(parent);
@@ -250,9 +227,12 @@ function calculateStats(actions) {
     };
 }
 
-function updateCountCaption(item, className, percent) {
-    var caption = item.find('.' + className);
-    caption.html(percent + '%');
+function updateCountPercent(item, className, percent) {
+    // Grab the choice span
+    var choiceSpans = item.getElementsByClassName(className);
+    // Grab the 2nd span, which is for percents
+    var percentSpan = choiceSpans[0].children[1];
+    percentSpan.innerHTML = percent + '%';
 }
 
 function addCountsToUI(counts) {
@@ -261,14 +241,12 @@ function addCountsToUI(counts) {
             continue;
         }
         var actions = calculateStats(counts[origin]);
-        // Since the id is a origin we must replace the dots, since JQuery
-        // doesn't like dots.
-        // e.g. '#https://google.com' -> '#https://google\.com'
-        var itemId = origin.replace(/\./g, '\\.');
-        var item = $('#' + itemId);
-        updateCountCaption(item, 'allow', actions.allow[1]);
-        updateCountCaption(item, 'block', actions.block[1]);
-        updateCountCaption(item, 'scrub', actions.scrub[1]);
+        // The origin is the id
+        var item = document.getElementById(origin);
+        updateCountPercent(item, 'allow', actions.allow[1]);
+        updateCountPercent(item, 'block', actions.block[1]);
+        updateCountPercent(item, 'scrub', actions.scrub[1]);
+        console.log('Updated action counts for: ' + origin, counts[origin]);
     }
 }
 
@@ -330,7 +308,6 @@ function updateUI(origin, requests) {
     });
     var acceptCaption = $('<span>');
     // acceptCaption.html(actions.allow[1] + '%');
-
     accept.html(' ');
     accept.append(acceptIcon);
     accept.append(acceptCaption);
@@ -439,7 +416,6 @@ function updateUI(origin, requests) {
     acceptIcon.click(fade);
     blockIcon.click(fade);
     scrubIcon.click(fade);
-
     // Put together the whole object
     item.append(options);
     item.append(ranks);
@@ -470,7 +446,7 @@ function processRequests(requests) {
         // Build the UI
         updateUI(origin, requests[origin]);
     }
-    sendCountsRequest(origins);
+    sendCountsRequest(origins, webSocketReceive);
 }
 
 /**
@@ -524,8 +500,6 @@ function convertRequests(requests) {
 }
 
 // Initialize everything.
-
-socket = setupWebSocket(socketDeferred, webSocketReceive);
 
 $(document).ready(function() {
     // Retrieve the current tabId to ask for all our blocked requests.

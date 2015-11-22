@@ -1,22 +1,20 @@
 /**
  * Created by michael on 11/15/15.
  */
-/* global chrome, BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS */
+/* global chrome, BLOCKED_STRINGS,  ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS,
+ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 'use strict';
 
 var stopleak = stopleak || {};
 
+stopleak.noMatchRegex = new RegExp('a^', 'gi');
+stopleak.piiRegex = stopleak.noMatchRegex;
 stopleak[BLOCKED_STRINGS] = [];
 stopleak[DENY] = [];
 stopleak[ALLOW] = [];
 stopleak[SCRUB] = [];
 stopleak[SWWL] = [];
 stopleak[CUSTOM_SETTINGS] = {};
-
-const ACTION_ALLOW = 'allow';
-const ACTION_DENY = 'deny';
-const ACTION_SCRUB = 'scrub';
-const ACTION_UNKNOWN = 'unknown';
 
 /**
  * Checks if an object has no keys
@@ -198,6 +196,19 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
         /* falls through */
         case SWWL:
             // if not BLOCKED_STRINGS and not CUSTOM_SETTINGS
+            if (map.val) {
+                try {
+                    var u = new URL(map.val);
+                    console.log('storage: adding addingURL: ', u);
+                    map.val = u.origin;
+                } catch (err) {
+                    console.log('storage: url not correct format - ' + map.val);
+                    if (onError !== null) {
+                        onError();
+                    }
+                    return;
+                }
+            }
         /* falls through */
         case BLOCKED_STRINGS:
             if (!map.val) {
@@ -233,12 +244,26 @@ function updateSyncSetting(setting, map, onSuccess, onError) {
 }
 
 /**
+ * Update the regex used to match for PII data.
+ */
+function updatePiiRegex() {
+    var blocked = stopleak[BLOCKED_STRINGS];
+    if (blocked.length > 0) {
+        var regex = '(' + blocked.map(stopleak.escapeRegExp).join('|') + ')';
+        stopleak.piiRegex = new RegExp(regex, 'gi');
+    } else {
+        stopleak.piiRegex = stopleak.noMatchRegex;
+    }
+}
+
+/**
  * Load user data from storage.
  */
 function getUserData() {
     chrome.storage.sync.get(null, function(list) {
         stopleak[BLOCKED_STRINGS] = list.hasOwnProperty(BLOCKED_STRINGS) ?
             list[BLOCKED_STRINGS] : [];
+        updatePiiRegex();
 
         stopleak[DENY] = list.hasOwnProperty(DENY) ?  list[DENY] : [];
 
@@ -266,44 +291,33 @@ function updateUserData(changes, areaName) {
     var change;
     if (changes.hasOwnProperty(BLOCKED_STRINGS)) {
         change = changes[BLOCKED_STRINGS];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[BLOCKED_STRINGS] = change.newValue || [];
-        }
+        stopleak[BLOCKED_STRINGS] = change.newValue || [];
+        updatePiiRegex();
     }
 
     if (changes.hasOwnProperty(ALLOW)) {
         change = changes[ALLOW];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[ALLOW] = change.newValue || [];
-        }
+        stopleak[ALLOW] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(DENY)) {
         change = changes[DENY];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[DENY] = change.newValue || [];
-        }
+        stopleak[DENY] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(SCRUB)) {
         change = changes[SCRUB];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[SCRUB] = change.newValue || [];
-        }
+        stopleak[SCRUB] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(SWWL)) {
         change = changes[SWWL];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[SWWL] = change.newValue || [];
-        }
+        stopleak[SWWL] = change.newValue || [];
     }
 
     if (changes.hasOwnProperty(CUSTOM_SETTINGS)) {
         change = changes[CUSTOM_SETTINGS];
-        if (change.hasOwnProperty('newValue')) {
-            stopleak[CUSTOM_SETTINGS] = change.newValue || {};
-        }
+        stopleak[CUSTOM_SETTINGS] = change.newValue || {};
     }
 }
 

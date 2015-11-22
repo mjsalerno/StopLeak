@@ -20,7 +20,6 @@
     <!-- build:js scripts/options.js -->
     <!-- endbuild -->
     <script src="scripts/constants.js"></script>
-    <script src="scripts/storage.js"></script>
 
     <style>
         table.box, th.box, td.box {
@@ -30,7 +29,7 @@
         }
     </style>
 
-    Filters:<br>
+    PII Data:<br>
     <input type="text" id="new-filter">
     <button id="add-filter-btn">Add</button>
     <button id="clear-filter-btn">Clear</button><br>
@@ -39,7 +38,9 @@
 
     <hr>
 
-    Allow List:<br>
+    Allow Requests List:<br>
+    <!--Allow requests going towards the following sites even
+    if they contain PII<br> -->
     <input type="text" id="new-allow">
     <button id="add-allow-btn">Add</button>
     <button id="clear-allow-btn">Clear</button><br>
@@ -48,7 +49,8 @@
 
     <hr>
 
-    Deny List:<br>
+    Deny Requests List:<br>
+    <!-- Block requests that go towards the following sites if they contain PII<br> -->
     <input type="text" id="new-deny">
     <button id="add-deny-btn">Add</button>
     <button id="clear-deny-btn">Clear</button><br>
@@ -57,7 +59,8 @@
 
     <hr>
 
-    Scrub List:<br>
+    Scrub Requests List:<br>
+    <!-- Replace PII data with random strings going towards the following sites<br> -->
     <input type="text" id="new-scrub">
     <button id="add-scrub-btn">Add</button>
     <button id="clear-scrub-btn">Clear</button><br>
@@ -67,6 +70,7 @@
     <hr>
 
     Site Wide White List:<br>
+    <!-- Disable extention on the following sites<br> -->
     <input type="text" id="new-swwl">
     <button id="add-swwl-btn">Add</button>
     <button id="clear-swwl-btn">Clear</button><br>

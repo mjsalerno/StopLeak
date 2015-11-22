@@ -4,7 +4,7 @@
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "Detect and alert the user of a PII leak",
+    "message": "Stops third party requests that accidentally or intentionally leak Personally Identifiable Information (PII).",
     "description": "The description of the application"
   }
 }
