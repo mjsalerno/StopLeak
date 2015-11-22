@@ -1,5 +1,5 @@
 'use strict';
-/* global $, BLOCKED_STRINGS, ALLOW, DENY, SCRUB, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
+/* global $, BLOCKED_STRINGS, SETTINGS, SWWL, CUSTOM_SETTINGS, ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, updateSyncSetting, delSyncStorage */
 
 function removeColumn(evt) {
     var element = $(evt.target);
@@ -57,6 +57,7 @@ function buildTableRow(args) {
 function addStringToUI(str, idd, key) {
     var table = document.getElementById(idd);
     var row = table.insertRow(0);
+    row.id = str;
     var cell0 = row.insertCell(0);
     var cell1 = row.insertCell(1);
     cell1.innerHTML = str;
@@ -138,21 +139,20 @@ function addSetting(inId, tblId, key) {
     updateSyncSetting(key, {val: newFilter}, function() {
         refreshSetting(tblId, key);
     },  null);
-    /*chrome.storage.sync.get(null, function(items) {
-        var filters = [];
-        if (items[key]) {
-            filters = items[key];
-            if (filters.indexOf(newFilter) > -1) {
-                return;
-            }
-        }
-        filters.push(newFilter);
-        var a  = {};
-        a[key] = filters;
-        chrome.storage.sync.set(a, function() {
-            refreshSetting(tblId, key);
-        });
-    });*/
+}
+
+function addActionSetting(inId, tblId, key) {
+    var newOrigin = document.getElementById(inId).value;
+    if (!newOrigin) {
+        return;
+    }
+
+    // TODO: Tell user on failure.
+    updateSyncSetting(key, {val: newOrigin}, function() {
+        refreshSetting(tblId, key);
+        var staleEntry = document.getElementById(newOrigin);
+        staleEntry.remove();
+    },  null);
 }
 
 function addActions() {
@@ -177,17 +177,17 @@ function clearFilters() {
 }
 
 function clearAllows() {
-    chrome.storage.sync.remove(ALLOW);
+    chrome.storage.sync.remove(SETTINGS);
     document.getElementById('allow-tbl').innerHTML = '';
 }
 
 function clearDeny() {
-    chrome.storage.sync.remove(DENY);
+    chrome.storage.sync.remove(SETTINGS);
     document.getElementById('deny-tbl').innerHTML = '';
 }
 
 function clearScrub() {
-    chrome.storage.sync.remove(SCRUB);
+    chrome.storage.sync.remove(SETTINGS);
     document.getElementById('scrub-tbl').innerHTML = '';
 }
 
@@ -239,13 +239,13 @@ document.addEventListener('DOMContentLoaded', function() {
         addSetting('new-filter', 'filter-tbl', BLOCKED_STRINGS);
     };
     document.getElementById('add-allow-btn').onclick = function() {
-        addSetting('new-allow', 'allow-tbl', ALLOW);
+        addActionSetting('new-allow', 'allow-tbl', SETTINGS);
     };
     document.getElementById('add-deny-btn').onclick = function() {
-        addSetting('new-deny', 'deny-tbl', DENY);
+        addActionSetting('new-deny', 'deny-tbl', SETTINGS);
     };
     document.getElementById('add-scrub-btn').onclick = function() {
-        addSetting('new-scrub', 'scrub-tbl', SCRUB);
+        addActionSetting('new-scrub', 'scrub-tbl', SETTINGS);
     };
     document.getElementById('add-swwl-btn').onclick = function() {
         addSetting('new-swwl', 'swwl-tbl', SWWL);
@@ -261,9 +261,9 @@ document.addEventListener('DOMContentLoaded', function() {
     //var filters = ['john', 'smith', 'john smith'];
     //chrome.storage.sync.set({BLOCKED_STRINGS:filters});
     refreshSetting('filter-tbl', BLOCKED_STRINGS);
-    refreshSetting('allow-tbl', ALLOW);
-    refreshSetting('deny-tbl', DENY);
-    refreshSetting('scrub-tbl', SCRUB);
+    refreshSetting('allow-tbl', SETTINGS);
+    refreshSetting('deny-tbl', SETTINGS);
+    refreshSetting('scrub-tbl', SETTINGS);
     refreshSetting('swwl-tbl', SWWL);
     refreshCustSettings();
 

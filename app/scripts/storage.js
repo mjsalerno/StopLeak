@@ -8,7 +8,7 @@ ACTION_ALLOW, ACTION_DENY, ACTION_SCRUB, ACTION_UNKNOWN */
 var stopleak = stopleak || {};
 
 stopleak[BLOCKED_STRINGS] = [];
-stopleak[SETTINGS] = [];
+stopleak[SETTINGS] = {};
 stopleak[CUSTOM_SETTINGS] = {};
 
 /**
@@ -239,7 +239,7 @@ function getUserData() {
             list[BLOCKED_STRINGS] : [];
 
         stopleak[SETTINGS] = list.hasOwnProperty(SETTINGS) ?
-            list[SETTINGS] : [];
+            list[SETTINGS] : {};
 
         stopleak[SWWL] = list.hasOwnProperty(SWWL) ?  list[SWWL] : [];
 
