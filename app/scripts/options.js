@@ -169,18 +169,21 @@ function refreshCustSettings() {
 }
 
 function addSetting(inId, tblId, key) {
-    var newFilter = document.getElementById(inId).value;
+    var elem = document.getElementById(inId);
+    var newFilter = elem.value;
     if (!newFilter) {
         return;
     }
 
     bgPage.updateSyncSetting(key, {val: newFilter}, function() {
         refreshSetting(tblId, key);
+        elem.value = '';
     },  null);
 }
 
 function addActionSetting(inId, action) {
-    var newOrigin = document.getElementById(inId).value;
+    var elem = document.getElementById(inId);
+    var newOrigin = elem.value;
     if (!newOrigin) {
         return;
     }
@@ -191,6 +194,7 @@ function addActionSetting(inId, action) {
             refreshActionSetting('allow-tbl', ACTION_ALLOW);
             refreshActionSetting('deny-tbl', ACTION_DENY);
             refreshActionSetting('scrub-tbl', ACTION_SCRUB);
+            elem.value = '';
         },
     null);
 }
@@ -346,6 +350,14 @@ $(document).keypress(function(e) {
     if (e.which === 13) {
         if ($('#new-cs-src').is(':focus') || $('#new-cs-dst').is(':focus')) {
             $('#add-cs-btn').click();
+        } else if ($('#new-filter').is(':focus')) {
+            $('#add-filter-btn').click();
+        } else if ($('#new-allow').is(':focus')) {
+            $('#add-allow-btn').click();
+        } else if ($('#new-deny').is(':focus')) {
+            $('#add-deny-btn').click();
+        } else if ($('#new-scrub').is(':focus')) {
+            $('#add-scrub-btn').click();
         }
     }
 });
