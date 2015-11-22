@@ -160,27 +160,29 @@ function scrubRequestHeaders(request) {
 function piiInRequestHeaders(request) {
     var piiFound = false;
     var requestHeaders = request.requestHeaders;
+    request.headersChanged = false;
 
     for (var i = requestHeaders.length - 1; i >= 0; --i) {
         var header = requestHeaders[i];
         var headerValue = stopleak.getHeaderValue(header);
-        if (header.name === 'Cookie') {
-            // TODO: Is there PII in the Cookie being sent?
-            // Does this part even matter? I think we should block cookies
-            // that are being sent over http.
-            requestHeaders.splice(i, 1);
-        } else if (header.name === 'Referer') {
-            // TODO: Is there PII in the referrer url, i.e. the current url of
-            // this frame.
-            requestHeaders.splice(i, 1);
-        } else {
-            // TODO: just naively check for PII?
-            // JavaScript can add arbitrary headers to XMLHttpRequests using
-            // the setRequestHeader() method.
-            // w3.org/TR/XMLHttpRequest/#the-setrequestheader-method
-            if (strContainsPIIdata(request, header.name + ':' + headerValue)) {
+        switch (header.name) {
+            case 'Cookie':
+                requestHeaders.splice(i, 1);
+                addBlockMessage(request, 'This request had a cookie. ' +
+                    'Cookies are used to track and identify you across' +
+                    ' the web.');
                 piiFound = true;
-            }
+                break;
+            case 'Referer':
+                // Just drop and ignore referer
+                requestHeaders.splice(i, 1);
+                request.headersChanged = true;
+                break;
+            default:
+                if (strContainsPIIdata(request, header.name) ||
+                    strContainsPIIdata(request, headerValue)) {
+                    piiFound = true;
+                }
         }
     }
     // Fake the ETag header
@@ -305,7 +307,6 @@ function onBeforeSendHeaders(request, sourceOrigin, destOrigin) {
             break;
         case ACTION_UNKNOWN:
             if (piiInRequestHeaders(request)) {
-                // TODO: notify user's tab with content popup
                 cancel = saveRequest = true;
             }
             break;
@@ -322,7 +323,7 @@ function onBeforeSendHeaders(request, sourceOrigin, destOrigin) {
         console.log('[Cancel]', request, 'reasons', request.blockReasons);
         console.log('[Cancel] PII found:', request.piiFound);
         return {cancel: true};
-    } else if (headersChanged) {
+    } else if (headersChanged || request.headersChanged) {
         return {requestHeaders: request.requestHeaders};
     }
     return {cancel: false};
