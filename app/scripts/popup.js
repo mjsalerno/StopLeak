@@ -472,6 +472,7 @@ function updateUI(origin, requests) {
         // Add Reasons for pontential concern
         for (var r in request.reasons) {
             rdiv.append(request.reasons[r]);
+            rdiv.append('<br />');
         }
         // Add URL info
         if (request.extras.length > 0) {
