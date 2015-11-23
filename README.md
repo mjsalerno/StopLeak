@@ -3,7 +3,7 @@ Detect and alert users to a personally identifiable information (PII) leak.
 
 # Building
 
-install npm
+- install npm
 
 ## From Terminal
 - ```$ npm install bower grunt grunt-cli -g```
