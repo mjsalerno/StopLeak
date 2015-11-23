@@ -569,11 +569,11 @@ function convertRequests(requests) {
         }
         // Look through URL and request information
         var extraCanidates = [url.protocol, url.username,
-                              url.password, url.port, url.search,
-                              request.method];
+                              url.password, url.port, request.method,
+                              url.search];
         var canidateKeys = ['<b>Protocol:</b>', '<b>Username:</b>',
                             '<b>Password:</b>', '<b>Port:</b>',
-                            '<b>Query Params:</b>', '<b>Method:</b>'];
+                            '<b>Method:</b>', '<b>Query Params:</b>'];
         var extras = [];
         for (var j in extraCanidates) {
             if (extraCanidates[j].length > 0) {
