@@ -1,13 +1,17 @@
 # StopLeak   [![Build Status](http://ip.roofis0.net:666/buildStatus/icon?job=cse509)](http://ip.roofis0.net:666/job/cse509)
 Detect and alert users to a personally identifiable information (PII) leak.
 
-## Building
+# Building
+
 install npm
 
+## From Terminal
 - ```$ npm install bower grunt grunt-cli -g```
 - ```$ npm install```
 - ```$ bower install```
 - ```$ grunt build```
+
+## Next
 
 - Navigate to Chrome extension menu: chrome://extensions
 - Select load unpacked extension.
