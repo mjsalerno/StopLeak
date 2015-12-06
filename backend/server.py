@@ -36,13 +36,8 @@ def main():
     init_logging(args.log_file, level)
 
     context = None
-    if not args.no_ssl:
+    if args.use_ssl:
         context = createSSLContext()
-        import ssl
-        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        cert = '../../certs/cert.pem'
-        key = '../../certs/key.pem'
-        context.load_cert_chain(certfile=cert, keyfile=key)
 
     stopLeak = StopLeak(args.db_name, args.host, args.port, context)
     logging.info('Listening at: %s:%s', args.host, args.port)
@@ -85,9 +80,9 @@ def parse_args():
                            default=DEFAULT_PORT,
                            help='server port '
                                 '(default: {})'.format(DEFAULT_PORT))
-    argparser.add_argument('-n', '--no-ssl', action='store_true', dest='no_ssl',
-                           default=False,
-                           help='Turn off SSL/TLS (default: False)')
+    argparser.add_argument('-n', '--ssl', action='store_true', dest='use_ssl',
+                           default=True,
+                           help='Use SSL/TLS (default: --ssl=True)')
     argparser.add_argument('-v', '--version', action='version', version='StopLeak Server v0.1')
 
     return argparser.parse_args()
