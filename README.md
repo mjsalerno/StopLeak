@@ -1,4 +1,4 @@
-# StopLeak   [![Build Status](http://ip.roofis0.net:666/buildStatus/icon?job=cse509)](http://ip.roofis0.net:666/job/cse509)
+# StopLeak   [![Build Status](https://travis-ci.org/mjsalerno/StopLeak.svg?branch=master)](https://travis-ci.org/mjsalerno/StopLeak)
 Detect and alert users to a personally identifiable information (PII) leak.
 
 # Building
