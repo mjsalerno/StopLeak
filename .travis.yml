@@ -1,0 +1,11 @@
+before_script:
+  - npm install bower grunt grunt-cli -g
+
+script:
+  - npm install
+  - bower install
+  - grunt build
+
+language: node_js
+node_js:
+  - "0.10"
